@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-//import 'user/doctor_list.dart';
+import 'doctor_list.dart';
+
+// user section
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,7 +14,7 @@ class _HomePageState extends State<HomePage> {
   int selectedIndex = 0;
 
   final pages = [
-    //const DoctorListPage(),
+    const DoctorListPage(),
     const Center(child: Text("Profile Page (Later)")),
   ];
 
