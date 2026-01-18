@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// IMPORT YOUR SCREENS
+import 'doctor_register_page.dart';
 import 'register.dart';
+import 'home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,54 +15,134 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
   bool loading = false;
 
-  login() async {
+  Future<void> login() async {
     setState(() => loading = true);
 
     try {
+      // 1️⃣ Firebase Authentication
+      UserCredential userCred =
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      String uid = userCred.user!.uid;
+
+      // 2️⃣ CHECK USER COLLECTION
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (userDoc.exists) {
+        if (userDoc['isBlocked'] == true) {
+          await FirebaseAuth.instance.signOut();
+          showMessage("Your account is blocked by admin");
+          setState(() => loading = false);
+          return;
+        }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+        return;
+      }
+
+      // 3️⃣ CHECK DOCTOR COLLECTION
+      DocumentSnapshot doctorDoc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(uid)
+          .get();
+
+      if (doctorDoc.exists) {
+        if (doctorDoc['isBlocked'] == true) {
+          await FirebaseAuth.instance.signOut();
+          showMessage("Your account is blocked by admin");
+          setState(() => loading = false);
+          return;
+        }
+
+        if (doctorDoc['isVerified'] == false) {
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) => const DoctorPendingScreen(),
+          //   ),
+          // );
+        } else {
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) => const DoctorHomePage(),
+          //   ),
+          // );
+        }
+        return;
+      }
+
+      // 4️⃣ NO ROLE FOUND
+      await FirebaseAuth.instance.signOut();
+      showMessage("No role assigned to this account");
+
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      showMessage(e.toString());
     }
 
     setState(() => loading = false);
   }
 
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      appBar: AppBar(
+        title: const Text("Login"),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(),
+              ),
             ),
+            const SizedBox(height: 15),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
               obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 20),
+
+            // LOGIN BUTTON
             ElevatedButton(
               onPressed: loading ? null : login,
-              child:
-              loading ? const CircularProgressIndicator() : const Text("Login"),
+              child: loading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text("Login"),
             ),
+
+            const SizedBox(height: 10),
+
+            // USER REGISTER
             TextButton(
               onPressed: () {
                 Navigator.push(
@@ -66,7 +150,20 @@ class _LoginPageState extends State<LoginPage> {
                   MaterialPageRoute(builder: (_) => const RegisterPage()),
                 );
               },
-              child: const Text("Create Account"),
+              child: const Text("Create User Account"),
+            ),
+
+            // DOCTOR REGISTER
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const DoctorRegisterPage(),
+                  ),
+                );
+              },
+              child: const Text("Register as Doctor"),
             ),
           ],
         ),
