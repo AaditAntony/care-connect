@@ -9,15 +9,17 @@ class DoctorPendingScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Verification Pending"),
-        automaticallyImplyLeading: false,
+        centerTitle: true,
+        automaticallyImplyLeading: false, // Disable back button
         actions: [
+          // Logout button for doctor
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               Navigator.pop(context);
             },
-          )
+          ),
         ],
       ),
       body: Center(
@@ -26,12 +28,15 @@ class DoctorPendingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
+              // Pending icon
               Icon(
                 Icons.hourglass_top,
                 size: 80,
                 color: Colors.orange,
               ),
               SizedBox(height: 20),
+
+              // Main message
               Text(
                 "Your account is under verification",
                 style: TextStyle(
@@ -40,12 +45,16 @@ class DoctorPendingScreen extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+
               SizedBox(height: 10),
+
+              // Sub message
               Text(
-                "Please wait while the admin verifies your details.\n"
-                    "This may take up to 7 days.",
-                textAlign: TextAlign.center,
+                "Your details have been submitted successfully.\n"
+                    "Admin verification may take up to 7 days.\n\n"
+                    "You will be able to access your dashboard once approved.",
                 style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // IMPORT YOUR SCREENS
+import 'doctor_pending.dart';
 import 'doctor_register_page.dart';
+import 'doctor_verification_form.dart';
 import 'register.dart';
 import 'home.dart';
 
@@ -54,37 +56,55 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // 3️⃣ CHECK DOCTOR COLLECTION
+      // DOCTOR COLLECTION CHECK
       DocumentSnapshot doctorDoc = await FirebaseFirestore.instance
           .collection('doctors')
           .doc(uid)
           .get();
 
       if (doctorDoc.exists) {
+
         if (doctorDoc['isBlocked'] == true) {
           await FirebaseAuth.instance.signOut();
           showMessage("Your account is blocked by admin");
-          setState(() => loading = false);
           return;
         }
 
-        if (doctorDoc['isVerified'] == false) {
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) => const DoctorPendingScreen(),
-          //   ),
-          // );
-        } else {
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) => const DoctorHomePage(),
-          //   ),
-          // );
+        // 🔹 CASE 1: Verification form NOT submitted
+        if (!doctorDoc.data().toString().contains('verificationStatus')) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const DoctorVerificationForm(),
+            ),
+          );
+          return;
         }
-        return;
+
+        // 🔹 CASE 2: Submitted, waiting for admin
+        if (doctorDoc['verificationStatus'] == 'pending') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const DoctorPendingScreen(),
+            ),
+          );
+          return;
+        }
+
+        // 🔹 CASE 3: Approved doctor
+        // if (doctorDoc['verificationStatus'] == 'approved') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder: (_) => const DoctorHomePage(),
+        //     ),
+        //   );
+        //   return;
+        // }
       }
+
+
 
       // 4️⃣ NO ROLE FOUND
       await FirebaseAuth.instance.signOut();
