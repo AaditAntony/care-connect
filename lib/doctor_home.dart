@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// IMPORT APPOINTMENT DETAIL PAGE
+import 'appointment_detail.dart';
+
 class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
 
@@ -12,8 +15,8 @@ class DoctorHomePage extends StatefulWidget {
 class _DoctorHomePageState extends State<DoctorHomePage> {
   final String doctorId = FirebaseAuth.instance.currentUser!.uid;
 
-  /// Logout doctor
-  Future<void> logout(BuildContext context) async {
+  // Logout function
+  Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
     Navigator.pop(context);
   }
@@ -28,20 +31,19 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => logout(context),
+            onPressed: logout,
           )
         ],
       ),
 
-      // 🔥 StreamBuilder listens to doctor's appointments in real-time
+      // 🔐 Filter appointments by doctorId
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('appointments')
             .where('doctorId', isEqualTo: doctorId)
-            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          // Loading state
+          // Loading
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -49,10 +51,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           // No appointments
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(
-              child: Text(
-                "No appointments yet",
-                style: TextStyle(fontSize: 16),
-              ),
+              child: Text("No appointments yet"),
             );
           }
 
@@ -67,10 +66,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                 margin: const EdgeInsets.all(10),
                 child: ListTile(
                   leading: const Icon(Icons.person),
-                  title: Text(
-                    "Patient ID: ${data['userId']}",
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  title: Text("Patient ID: ${data['userId']}"),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -78,10 +74,20 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                       Text("Status: ${data['status']}"),
                     ],
                   ),
-                  trailing: const Icon(Icons.arrow_forward),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+
+                  // 👉 OPEN APPOINTMENT DETAIL
                   onTap: () {
-                    // 👉 Next step: Appointment Detail + Prescription
-                    // We will build this file next
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AppointmentDetailPage(
+                          appointmentId: doc.id,
+                          userId: data['userId'],
+                          doctorId: doctorId,
+                        ),
+                      ),
+                    );
                   },
                 ),
               );
