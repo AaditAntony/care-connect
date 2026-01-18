@@ -81,17 +81,46 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // -------- MEDICINE SECTION --------
+            // ================= MEDICINE SECTION =================
             const Text(
-              "Prescribe Medicine",
+              "Prescribed Medicines",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
 
+            // 🔥 SHOW MEDICINES (IMPORTANT FIX)
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('prescriptions')
+                  .where('appointmentId',
+                  isEqualTo: widget.appointmentId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
+                  return const Text("No medicines added yet");
+                }
+
+                return Column(
+                  children: snapshot.data!.docs.map((doc) {
+                    return ListTile(
+                      leading: const Icon(Icons.medical_services),
+                      title: Text(doc['medicine']),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+
+            const SizedBox(height: 10),
+
             TextField(
               controller: medicineController,
               decoration: const InputDecoration(
-                labelText: "Medicine & dosage",
+                labelText: "Medicine name & dosage",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -102,14 +131,43 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               child: const Text("Add Medicine"),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
-            // -------- ACTIVITY SECTION --------
+            // ================= ACTIVITY SECTION =================
             const Text(
-              "Assign Activity / Exercise",
+              "Assigned Activities",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+
+            // 🔥 SHOW ACTIVITIES
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('activities')
+                  .where('appointmentId',
+                  isEqualTo: widget.appointmentId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                }
+
+                if (snapshot.data!.docs.isEmpty) {
+                  return const Text("No activities assigned yet");
+                }
+
+                return Column(
+                  children: snapshot.data!.docs.map((doc) {
+                    return ListTile(
+                      leading: const Icon(Icons.fitness_center),
+                      title: Text(doc['activity']),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+
+            const SizedBox(height: 10),
 
             TextField(
               controller: activityController,
@@ -127,7 +185,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
 
             const SizedBox(height: 30),
 
-            // -------- COMPLETE BUTTON --------
+            // ================= COMPLETE =================
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
