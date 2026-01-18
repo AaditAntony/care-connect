@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // IMPORT YOUR SCREENS
+import 'doctor_home.dart';
 import 'doctor_pending.dart';
 import 'doctor_register_page.dart';
 import 'doctor_verification_form.dart';
@@ -92,16 +93,16 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // 🔹 CASE 3: Approved doctor
-        // if (doctorDoc['verificationStatus'] == 'approved') {
-        //   Navigator.pushReplacement(
-        //     context,
-        //     MaterialPageRoute(
-        //       builder: (_) => const DoctorHomePage(),
-        //     ),
-        //   );
-        //   return;
-        // }
+       // 🔹 CASE 3: Approved doctor
+        if (doctorDoc['verificationStatus'] == 'approved') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const DoctorHomePage(),
+            ),
+          );
+          return;
+        }
       }
 
 
