@@ -1,8 +1,11 @@
+import 'package:care_connect/user_appointments_page.dart';
 import 'package:flutter/material.dart';
+
+// USER SCREENS
 import 'doctor_list.dart';
 
-// user section
 
+// USER HOME PAGE
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -13,15 +16,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int selectedIndex = 0;
 
-  final pages = [
-    const DoctorListPage(),
-    const Center(child: Text("Profile Page (Later)")),
+  // 🔹 Pages MUST match bottom nav items count
+  final List<Widget> pages = const [
+    DoctorListPage(),          // Index 0
+    UserAppointmentsPage(),    // Index 1
+    Center(child: Text("Profile Page (Later)")), // Index 2
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("User Home")),
+      appBar: AppBar(
+        title: const Text("User Home"),
+      ),
       body: pages[selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
@@ -34,6 +41,10 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.local_hospital),
             label: "Doctors",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: "Appointments",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
