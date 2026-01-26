@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'doctor_complaint_page.dart';
+
 class AppointmentDetailPage extends StatefulWidget {
   final String appointmentId;
   final String userId;
@@ -195,7 +197,30 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               child: loading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : const Text("Mark Appointment as Completed"),
+
+
             ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                minimumSize: const Size(double.infinity, 45),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DoctorComplaintPage(
+                      userId: widget.userId,
+                    ),
+                  ),
+                );
+              },
+              child: const Text("Report User"),
+            ),
+
           ],
         ),
       ),
