@@ -62,6 +62,7 @@ class UserAppointmentsPage extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => UserPrescriptionPage(
                           appointmentId: doc.id,
+                          doctorId: data['doctorId'],
                         ),
                       ),
                     );
