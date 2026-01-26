@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'admin_complaints_page.dart';
 import 'admin_verify_doctors_page.dart';
 
 class AdminEntryPage extends StatelessWidget {
@@ -11,7 +12,41 @@ class AdminEntryPage extends StatelessWidget {
 
     // 🔐 Admin allowed only on large screens
     if (screenWidth >= 600) {
-      return const AdminVerifyDoctorsPage();
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Admin Panel"),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AdminVerifyDoctorsPage(),
+                  ),
+                );
+              },
+              child: const Text("Verify Doctors"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AdminComplaintsPage(),
+                  ),
+                );
+              },
+              child: const Text("View Complaints"),
+            ),
+          ],
+        ),
+      );
+
+
     }
 
     // ❌ Admin NOT allowed on mobile
