@@ -1,13 +1,15 @@
+import 'package:care_connect/user_complaint_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserPrescriptionPage extends StatelessWidget {
   final String appointmentId;
+  final String doctorId;
 
   const UserPrescriptionPage({
     super.key,
-    required this.appointmentId,
+    required this.appointmentId, required this.doctorId,
   });
 
   @override
@@ -102,6 +104,26 @@ class UserPrescriptionPage extends StatelessWidget {
                 );
               },
             ),
+
+            const SizedBox(height: 30),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                minimumSize: const Size(double.infinity, 45),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => UserComplaintPage(
+                      doctorId: doctorId,
+                    ),
+                  ),
+                );
+              },
+              child: const Text("Report Doctor"),
+            ),
+
           ],
         ),
       ),
