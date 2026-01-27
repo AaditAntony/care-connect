@@ -33,7 +33,11 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
     setState(() => loading = true);
 
     try {
-      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final user = FirebaseAuth.instance.currentUser!;
+
+      if (user.email == null) {
+        throw "User email not available";
+      }
 
       // 🔍 CHECK IF SLOT IS ALREADY BOOKED
       final existing = await FirebaseFirestore.instance
@@ -43,22 +47,22 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
           .where('status', isEqualTo: 'booked')
           .get();
 
-      // ❌ SLOT ALREADY TAKEN
       if (existing.docs.isNotEmpty) {
         setState(() => loading = false);
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("This time slot is already booked. Please choose another."),
+            content: Text(
+                "This time slot is already booked. Please choose another."),
           ),
         );
         return;
       }
 
-      // ✅ SLOT AVAILABLE → CREATE APPOINTMENT
+      // ✅ CREATE APPOINTMENT
       await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': widget.doctorId,
-        'userId': userId,
+        'userId': user.uid,
+        'patientEmail': user.email,
         'problem': problemController.text.trim(),
         'timeSlot': selectedSlot,
         'status': 'booked',
@@ -77,6 +81,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
 
     setState(() => loading = false);
   }
+
 
 
   @override

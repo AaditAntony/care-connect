@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import 'doctor_complaint_page.dart';
 
 class AppointmentDetailPage extends StatefulWidget {
   final String appointmentId;
   final String userId;
   final String doctorId;
-
+  final String patientEmail;
   const AppointmentDetailPage({
     super.key,
     required this.appointmentId,
     required this.userId,
-    required this.doctorId,
+    required this.doctorId, required this.patientEmail,
   });
 
   @override
@@ -71,6 +71,30 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     setState(() => loading = false);
     Navigator.pop(context);
   }
+  Future<void> openGmailForMeet(String patientEmail) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: patientEmail,
+      queryParameters: {
+        'subject': 'Online Consultation – Google Meet',
+        'body':
+        'Hello,\n\nPlease join the consultation using the Google Meet link below:\n\n',
+      },
+    );
+
+    try {
+      await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Could not open email app")),
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +209,16 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               child: const Text("Add Activity"),
             ),
 
+            // ================= SEND GMAIL =================
             const SizedBox(height: 30),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.video_call),
+              label: const Text("Send Google Meet Link"),
+              onPressed: () {
+                openGmailForMeet(widget.patientEmail);
+              },
+            ),
+
 
             // ================= COMPLETE =================
             ElevatedButton(
