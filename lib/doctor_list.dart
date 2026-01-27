@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'book_appointment.dart';
 
 class DoctorListPage extends StatelessWidget {
@@ -11,6 +13,7 @@ class DoctorListPage extends StatelessWidget {
       stream: FirebaseFirestore.instance
           .collection('doctors')
           .where('verificationStatus', isEqualTo: 'approved')
+          .where('isBlocked', isEqualTo: false)
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -25,12 +28,33 @@ class DoctorListPage extends StatelessWidget {
           children: snapshot.data!.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
 
+            // 🔹 Decode profile image safely
+            Widget profileImageWidget = const CircleAvatar(
+              radius: 25,
+              child: Icon(Icons.person),
+            );
+
+            if (data['profileImageBase64'] != null &&
+                data['profileImageBase64'].toString().isNotEmpty) {
+              try {
+                profileImageWidget = CircleAvatar(
+                  radius: 25,
+                  backgroundImage: MemoryImage(
+                    base64Decode(data['profileImageBase64']),
+                  ),
+                );
+              } catch (_) {
+                // fallback if decoding fails
+              }
+            }
+
             return Card(
               margin: const EdgeInsets.all(10),
               child: ListTile(
+                leading: profileImageWidget, // 👈 IMAGE HERE
                 title: Text(data['name'] ?? "Doctor"),
                 subtitle: Text(
-                  "${data['specialization']} | ${data['experience']} yrs",
+                  "${data['specialization']} • ${data['experience']} yrs",
                 ),
                 trailing: ElevatedButton(
                   child: const Text("Consult"),
