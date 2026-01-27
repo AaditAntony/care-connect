@@ -1,3 +1,4 @@
+import 'package:care_connect/login.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +19,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   // Logout function
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pop(context);
+   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
   }
 
   @override
@@ -70,6 +71,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text("Patient email: ${data['patientEmail']}"),
                       Text("Time Slot: ${data['timeSlot']}"),
                       Text("Status: ${data['status']}"),
                     ],
@@ -85,6 +87,8 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
                           appointmentId: doc.id,
                           userId: data['userId'],
                           doctorId: doctorId,
+                            patientEmail: data['patientEmail']
+
                         ),
                       ),
                     );
