@@ -1,3 +1,4 @@
+import 'package:care_connect/refer_patient_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -232,6 +233,24 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                   : const Text("Mark Appointment as Completed"),
 
 
+            ),
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              child: const Text("Refer to Another Doctor"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReferPatientPage(
+                      appointmentId: widget.appointmentId,
+                      patientId: widget.userId,
+                      patientEmail: widget.patientEmail,
+                      fromDoctorId: widget.doctorId,
+                    ),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 20),
