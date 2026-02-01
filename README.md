@@ -19,3 +19,4 @@ aaded the login page for the users
 added the login page for the doctors
 added the register for the doctors and users
 created appointment page for th users
+users can select the doctors page
