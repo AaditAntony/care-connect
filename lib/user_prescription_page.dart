@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:care_connect/user_complaint_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -53,8 +55,10 @@ class UserPrescriptionPage extends StatelessWidget {
                     return ListTile(
                       leading: const Icon(Icons.medical_services),
                       title: Text(doc['medicine']),
+
                     );
                   }).toList(),
+
                 );
               },
             ),
@@ -101,6 +105,50 @@ class UserPrescriptionPage extends StatelessWidget {
                       },
                     );
                   }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 40),
+
+            const Divider(thickness: 1.5),
+
+            const SizedBox(height: 20),
+
+// ================= DOCTOR SIGNATURE SECTION =================
+            StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('doctors')
+                  .doc(doctorId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return const SizedBox();
+                }
+
+                final data = snapshot.data!.data() as Map<String, dynamic>;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Prescribed By",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+
+                    Text(
+                      data['name'] ?? 'Doctor',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    if (data['signatureBase64'] != null)
+                      Image.memory(
+                        base64Decode(data['signatureBase64']),
+                        height: 60,
+                      ),
+                  ],
                 );
               },
             ),

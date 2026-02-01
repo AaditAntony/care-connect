@@ -31,16 +31,26 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   Future<void> addMedicine() async {
     if (medicineController.text.trim().isEmpty) return;
 
+    // 🔥 FETCH DOCTOR SIGNATURE
+    final doctorDoc = await FirebaseFirestore.instance
+        .collection('doctors')
+        .doc(widget.doctorId)
+        .get();
+
+    final signature = doctorDoc['signatureBase64'];
+
     await FirebaseFirestore.instance.collection('prescriptions').add({
       'appointmentId': widget.appointmentId,
       'userId': widget.userId,
       'doctorId': widget.doctorId,
       'medicine': medicineController.text.trim(),
+      'doctorSignatureBase64': signature, // ✅ ATTACHED
       'createdAt': Timestamp.now(),
     });
 
     medicineController.clear();
   }
+
 
   /// Add activity/exercise
   Future<void> addActivity() async {
