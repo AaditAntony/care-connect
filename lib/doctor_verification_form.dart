@@ -28,6 +28,10 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
   String? profileImageBase64;
   String? certificateImageBase64;
 
+  // base 64 for the  docotor signature
+  File? signatureImage;
+  String? signatureBase64;
+
   bool loading = false;
 
   /// Pick PROFILE image
@@ -56,6 +60,23 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
     setState(() {
       certificateImageBase64 = base64Encode(bytes);
     });
+  }
+
+  // pic signature image
+  Future<void> pickSignature() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 40,
+    );
+
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      setState(() {
+        signatureImage = File(picked.path);
+        signatureBase64 = base64Encode(bytes);
+      });
+    }
   }
 
   /// Submit verification details
@@ -190,6 +211,33 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
               ),
 
             const SizedBox(height: 25),
+
+            // signature
+            const SizedBox(height: 20),
+
+            const Text(
+              "Doctor Signature",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            signatureImage == null
+                ? OutlinedButton.icon(
+              icon: const Icon(Icons.edit),
+              label: const Text("Upload Signature"),
+              onPressed: pickSignature,
+            )
+                : Column(
+              children: [
+                Image.file(signatureImage!, height: 80),
+                TextButton(
+                  onPressed: pickSignature,
+                  child: const Text("Change Signature"),
+                ),
+              ],
+            ),
+
 
             ElevatedButton(
               onPressed: loading ? null : submitVerification,
