@@ -25,3 +25,4 @@ doctor will be able to appointment the doctors
 user can select the appointment time
 user can report the doctor
 user can get the medical 
+user can recive activites
