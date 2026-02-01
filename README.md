@@ -17,3 +17,4 @@ samples, guidance on mobile development, and a full API reference.
 
 aaded the login page for the users
 added the login page for the doctors
+added the register for the doctors and users
