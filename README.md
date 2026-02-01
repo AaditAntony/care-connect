@@ -24,3 +24,4 @@ users can select the doctors page
 doctor will be able to appointment the doctors
 user can select the appointment time
 user can report the doctor
+user can get the medical 
