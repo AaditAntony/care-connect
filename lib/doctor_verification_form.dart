@@ -28,7 +28,7 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
   String? profileImageBase64;
   String? certificateImageBase64;
 
-  // base 64 for the  docotor signature
+  // base 64 for the  doctor signature
   File? signatureImage;
   String? signatureBase64;
 
@@ -90,6 +90,11 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
       showMessage("Please upload certificate image");
       return;
     }
+    if (signatureBase64 == null) {
+      showMessage("Please upload your signature");
+      return;
+    }
+
 
     setState(() => loading = true);
 
@@ -107,6 +112,7 @@ class _DoctorVerificationFormState extends State<DoctorVerificationForm> {
         'experience': experienceController.text.trim(),
         'profileImageBase64': profileImageBase64,
         'certificateBase64': certificateImageBase64,
+        'signatureBase64': signatureBase64,
         'verificationStatus': 'pending',
         'isVerified': false,
         'submittedAt': Timestamp.now(),
