@@ -22,9 +22,9 @@ class AdminComplaintsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Admin – Complaints")),
-      body: StreamBuilder<QuerySnapshot>(
+    return
+
+       StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('complaints')
             .where('status', isEqualTo: 'pending')
@@ -90,7 +90,7 @@ class AdminComplaintsPage extends StatelessWidget {
             }).toList(),
           );
         },
-      ),
-    );
+      );
+
   }
 }

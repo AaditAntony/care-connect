@@ -30,12 +30,8 @@ class AdminVerifyDoctorsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Admin – Doctor Verification"),
-        centerTitle: true,
-      ),
-      body: StreamBuilder<QuerySnapshot>(
+    return
+       StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('doctors')
             .where('verificationStatus', isEqualTo: 'pending')
@@ -138,8 +134,8 @@ class AdminVerifyDoctorsPage extends StatelessWidget {
             }).toList(),
           );
         },
-      ),
-    );
+      );
+
   }
 }
 
