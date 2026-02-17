@@ -22,75 +22,176 @@ class AdminComplaintsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return
-
-       StreamBuilder<QuerySnapshot>(
+    return Container(
+      color: const Color(0xFFF4F6FA), // soft background
+      child: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('complaints')
             .where('status', isEqualTo: 'pending')
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No pending complaints"));
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text(
+                "No pending complaints",
+                style: TextStyle(fontSize: 16),
+              ),
+            );
           }
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             children: snapshot.data!.docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "From: ${data['fromRole']} (${data['fromId']})",
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "Against: ${data['againstRole']} (${data['againstId']})",
-                      ),
-                      const SizedBox(height: 8),
-                      Text("Reason: ${data['reason']}"),
-                      const SizedBox(height: 16),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 25),
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      color: Colors.grey.withOpacity(0.08),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red),
-                            onPressed: () async {
-                              await blockAccount(
-                                data['againstRole'],
-                                data['againstId'],
-                              );
-                              await resolveComplaint(doc.id);
-                            },
-                            child: const Text("Block"),
+                    // ===== Header Section =====
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.report_problem,
+                          color: Colors.orange,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 10),
+                        const Text(
+                          "Pending Complaint",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(width: 12),
-                          ElevatedButton(
-                            onPressed: () => resolveComplaint(doc.id),
-                            child: const Text("Ignore"),
-                          ),
-                        ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ===== Complaint Info =====
+                    buildInfoRow(
+                      "From",
+                      "${data['fromRole']} (${data['fromId']})",
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    buildInfoRow(
+                      "Against",
+                      "${data['againstRole']} (${data['againstId']})",
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      "Reason",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FD),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        data['reason'] ?? "",
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    // ===== Action Buttons =====
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade500,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 22, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.block),
+                          onPressed: () async {
+                            await blockAccount(
+                              data['againstRole'],
+                              data['againstId'],
+                            );
+                            await resolveComplaint(doc.id);
+                          },
+                          label: const Text("Block Account"),
+                        ),
+
+                        const SizedBox(width: 15),
+
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade400,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 22, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.check),
+                          onPressed: () => resolveComplaint(doc.id),
+                          label: const Text("Ignore"),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               );
             }).toList(),
           );
         },
-      );
-
+      ),
+    );
   }
+
+  Widget buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            "$label:",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        Expanded(
+          child: Text(value),
+        ),
+      ],
+    );
+  }
+
 }
