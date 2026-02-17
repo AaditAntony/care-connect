@@ -8,7 +8,7 @@ import 'doctor_pending.dart';
 import 'doctor_register_page.dart';
 import 'doctor_verification_form.dart';
 import 'register.dart';
-import 'home.dart';
+import 'user/home.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

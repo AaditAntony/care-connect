@@ -1,4 +1,4 @@
-import 'package:care_connect/user_appointments_page.dart';
+import 'package:care_connect/user/user_appointments_page.dart';
 import 'package:flutter/material.dart';
 
 // USER SCREENS
