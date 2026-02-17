@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'appointment_detail.dart';
-import 'login.dart';
+import '../login.dart';
 
 class DoctorAppointmentsPage extends StatefulWidget {
   const DoctorAppointmentsPage({super.key});

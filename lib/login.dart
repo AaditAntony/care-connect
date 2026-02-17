@@ -3,11 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // IMPORT YOUR SCREENS
-import 'doctor_home.dart';
-import 'doctor_pending.dart';
-import 'doctor_register_page.dart';
-import 'doctor_verification_form.dart';
-import 'register.dart';
+import 'doctor/doctor_home.dart';
+import 'doctor/doctor_pending.dart';
+import 'doctor/doctor_register_page.dart';
+import 'doctor/doctor_verification_form.dart';
+import 'user/register.dart';
 import 'user/home.dart';
 
 class LoginPage extends StatefulWidget {
