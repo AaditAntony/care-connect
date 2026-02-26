@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'admin_verify_doctors_page.dart';
+import 'admin_doctor_approval_page.dart';
 import 'admin_complaints_page.dart';
 
 class AdminEntryPage extends StatefulWidget {
@@ -117,7 +117,8 @@ class _AdminEntryPageState extends State<AdminEntryPage> {
       case 0:
         return buildOverview();
       case 1:
-        return const AdminVerifyDoctorsPage();
+       // return const AdminVerifyDoctorsPage();
+        return const AdminDoctorApprovalPage();
       case 2:
         return const AdminComplaintsPage();
       default:
