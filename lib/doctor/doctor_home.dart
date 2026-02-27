@@ -1,4 +1,5 @@
 import 'package:care_connect/doctor/appointment_page.dart';
+import 'package:care_connect/doctor/patient_page.dart';
 import 'package:flutter/material.dart';
 import 'doctor_overview_page.dart';
 
@@ -14,8 +15,8 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
 
   final List<Widget> pages = const [
     DoctorOverviewPage(),
-    // PatientsPage(),
-    Scaffold(),
+    PatientsPage(),
+
     AppointmentsPage(),
     // ReferralsPage(),
     Scaffold(),
