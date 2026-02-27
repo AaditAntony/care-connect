@@ -23,21 +23,23 @@ class PatientsPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No patients yet"));
+            return const Center(child: Text("No patients found"));
           }
 
-          // 🔥 Extract unique userIds
           final docs = snapshot.data!.docs;
 
-          final Map<String, String> uniquePatients = {};
+          // 🔥 Extract unique patients
+          final Map<String, Map<String, dynamic>> uniquePatients = {};
 
           for (var doc in docs) {
             final data = doc.data() as Map<String, dynamic>;
 
             final userId = data['userId'];
-            final patientEmail = data['patientEmail'];
+            final email = data['patientEmail'];
 
-            uniquePatients[userId] = patientEmail;
+            if (!uniquePatients.containsKey(userId)) {
+              uniquePatients[userId] = {'email': email};
+            }
           }
 
           return ListView.builder(
@@ -45,11 +47,11 @@ class PatientsPage extends StatelessWidget {
             itemCount: uniquePatients.length,
             itemBuilder: (context, index) {
               final userId = uniquePatients.keys.elementAt(index);
-              final email = uniquePatients[userId];
+
+              final email = uniquePatients[userId]!['email'];
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -72,6 +74,7 @@ class PatientsPage extends StatelessWidget {
                   subtitle: const Text("Tap to view history"),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
+                    // ✅ CONNECTING TO HISTORY PAGE
                     Navigator.push(
                       context,
                       MaterialPageRoute(
