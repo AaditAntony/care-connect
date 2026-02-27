@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'doctor_appointments_page.dart';
-import 'doctors_referal_page.dart';
+import 'doctor_overview_page.dart';
+import 'patients_page.dart';
+import 'appointments_page.dart';
+import 'referrals_page.dart';
+import 'doctor_profile_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
@@ -13,20 +16,22 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
   int selectedIndex = 0;
 
   final List<Widget> pages = const [
-    DoctorAppointmentsPage(), // Index 0
-    DoctorReferralsPage(),    // Index 1
+    DoctorOverviewPage(),
+    PatientsPage(),
+    AppointmentsPage(),
+    ReferralsPage(),
+    DoctorProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Doctor Dashboard"),
-        automaticallyImplyLeading: false,
-      ),
       body: pages[selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {
             selectedIndex = index;
@@ -34,16 +39,27 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
         },
         items: const [
           BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: "Patients",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: "Appointments",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.transfer_within_a_station),
+            icon: Icon(Icons.swap_horiz),
             label: "Referrals",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profile",
           ),
         ],
       ),
     );
   }
 }
-// change need
