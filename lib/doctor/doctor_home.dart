@@ -1,10 +1,6 @@
 import 'package:care_connect/doctor/appointment_page.dart';
 import 'package:flutter/material.dart';
 import 'doctor_overview_page.dart';
-import 'patients_page.dart';
-import 'appointments_page.dart';
-import 'referrals_page.dart';
-import 'doctor_profile_page.dart';
 
 class DoctorHomePage extends StatefulWidget {
   const DoctorHomePage({super.key});
@@ -18,10 +14,13 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
 
   final List<Widget> pages = const [
     DoctorOverviewPage(),
-    PatientsPage(),
+    // PatientsPage(),
+    Scaffold(),
     AppointmentsPage(),
-    ReferralsPage(),
-    DoctorProfilePage(),
+    // ReferralsPage(),
+    Scaffold(),
+    // DoctorProfilePage(),
+    Scaffold(),
   ];
 
   @override
@@ -39,14 +38,8 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: "Patients",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.people), label: "Patients"),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: "Appointments",
@@ -55,10 +48,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
             icon: Icon(Icons.swap_horiz),
             label: "Referrals",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
     );
