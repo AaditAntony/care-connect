@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:care_connect/doctor/patient_history_page.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ConsultationPage extends StatefulWidget {
@@ -27,11 +26,11 @@ class _ConsultationPageState extends State<ConsultationPage> {
   final diagnosisController = TextEditingController();
   final notesController = TextEditingController();
 
+  final List<String> medicinesList = [];
+  final List<String> activitiesList = [];
+
   final medicineController = TextEditingController();
   final activityController = TextEditingController();
-
-  List<String> medicines = [];
-  List<String> activities = [];
 
   String? prescriptionImageBase64;
   bool loading = false;
@@ -52,111 +51,76 @@ class _ConsultationPageState extends State<ConsultationPage> {
     }
   }
 
-  /// Add medicine dynamically
-  void addMedicine() {
-    if (medicineController.text.trim().isEmpty) return;
-
-    setState(() {
-      medicines.add(medicineController.text.trim());
-      medicineController.clear();
-    });
-  }
-
-  /// Add activity dynamically
-  void addActivity() {
-    if (activityController.text.trim().isEmpty) return;
-
-    setState(() {
-      activities.add(activityController.text.trim());
-      activityController.clear();
-    });
-  }
-
-  /// Submit consultation
+  /// Submit Consultation
   Future<void> submitConsultation() async {
     if (diagnosisController.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Diagnosis required")));
+      ).showSnackBar(const SnackBar(content: Text("Diagnosis is required")));
       return;
     }
 
     setState(() => loading = true);
 
-    final doctorId = FirebaseAuth.instance.currentUser!.uid;
+    try {
+      final doctorId = FirebaseAuth.instance.currentUser!.uid;
 
-    // 🔥 Fetch doctor signature
-    final doctorDoc = await FirebaseFirestore.instance
-        .collection('doctors')
-        .doc(doctorId)
-        .get();
+      /// 🔥 Fetch doctor details
+      final doctorDoc = await FirebaseFirestore.instance
+          .collection('doctors')
+          .doc(doctorId)
+          .get();
 
-    final doctorData = doctorDoc.data() as Map<String, dynamic>;
+      final doctorData = doctorDoc.data() as Map<String, dynamic>;
 
-    final doctorSignature = doctorData['signatureBase64'];
+      final doctorName = doctorData['name'];
+      final doctorSignature = doctorData['signatureBase64'];
 
-    // 🔥 Create consultation document
-    await FirebaseFirestore.instance.collection('consultations').add({
-      'appointmentId': widget.appointmentId,
-      'doctorId': doctorId,
-      'userId': widget.userId,
-      'patientEmail': widget.patientEmail,
-      'diagnosis': diagnosisController.text.trim(),
-      'medicines': medicines,
-      'activities': activities,
-      'notes': notesController.text.trim(),
-      'prescriptionImageBase64': prescriptionImageBase64,
-      'doctorSignatureBase64': doctorSignature,
-      'createdAt': Timestamp.now(),
-    });
+      /// 🔥 Save consultation
+      await FirebaseFirestore.instance.collection('consultations').add({
+        'appointmentId': widget.appointmentId,
+        'doctorId': doctorId,
+        'doctorName': doctorName, // ✅ IMPORTANT
+        'userId': widget.userId,
+        'patientEmail': widget.patientEmail,
+        'diagnosis': diagnosisController.text.trim(),
+        'medicines': medicinesList,
+        'activities': activitiesList,
+        'notes': notesController.text.trim(),
+        'prescriptionImageBase64': prescriptionImageBase64,
+        'doctorSignatureBase64': doctorSignature,
+        'createdAt': Timestamp.now(),
+      });
 
-    // 🔥 Update appointment status
-    await FirebaseFirestore.instance
-        .collection('appointments')
-        .doc(widget.appointmentId)
-        .update({'status': 'completed'});
+      /// 🔥 Mark appointment completed
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(widget.appointmentId)
+          .update({'status': 'completed'});
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
 
     setState(() => loading = false);
-
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Consultation Completed")));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Consultation Form")),
+      appBar: AppBar(title: const Text("Consultation")),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Patient info
+            /// Patient Email
             Text(
               "Patient: ${widget.patientEmail}",
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-            const SizedBox(height: 8),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PatientHistoryPage(userId: widget.userId),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.history),
-                label: const Text("View Previous History"),
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
 
             const SizedBox(height: 20),
@@ -175,77 +139,65 @@ class _ConsultationPageState extends State<ConsultationPage> {
 
             const SizedBox(height: 20),
 
-            /// Medicines Section
+            /// Medicines
             const Text(
               "Medicines",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: medicineController,
-                    decoration: const InputDecoration(
-                      hintText: "Enter medicine",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(hintText: "Add medicine"),
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: addMedicine,
-                  child: const Text("Add"),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    if (medicineController.text.trim().isNotEmpty) {
+                      setState(() {
+                        medicinesList.add(medicineController.text.trim());
+                        medicineController.clear();
+                      });
+                    }
+                  },
                 ),
               ],
             ),
 
-            const SizedBox(height: 10),
-
-            ...medicines.map(
-              (med) => ListTile(
-                leading: const Icon(Icons.medical_services),
-                title: Text(med),
-              ),
-            ),
+            ...medicinesList.map((med) => ListTile(title: Text(med))),
 
             const SizedBox(height: 20),
 
-            /// Activities Section
+            /// Activities
             const Text(
               "Activities",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-
             Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: activityController,
-                    decoration: const InputDecoration(
-                      hintText: "Enter activity",
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(hintText: "Add activity"),
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: addActivity,
-                  child: const Text("Add"),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    if (activityController.text.trim().isNotEmpty) {
+                      setState(() {
+                        activitiesList.add(activityController.text.trim());
+                        activityController.clear();
+                      });
+                    }
+                  },
                 ),
               ],
             ),
 
-            const SizedBox(height: 10),
-
-            ...activities.map(
-              (act) => ListTile(
-                leading: const Icon(Icons.fitness_center),
-                title: Text(act),
-              ),
-            ),
+            ...activitiesList.map((act) => ListTile(title: Text(act))),
 
             const SizedBox(height: 20),
 
@@ -264,15 +216,14 @@ class _ConsultationPageState extends State<ConsultationPage> {
             const SizedBox(height: 20),
 
             /// Prescription Image
-            ElevatedButton.icon(
+            ElevatedButton(
               onPressed: pickPrescriptionImage,
-              icon: const Icon(Icons.upload),
-              label: const Text("Upload Prescription Image"),
+              child: const Text("Upload Prescription Image"),
             ),
 
             if (prescriptionImageBase64 != null)
               Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 child: Image.memory(
                   base64Decode(prescriptionImageBase64!),
                   height: 120,
@@ -281,7 +232,7 @@ class _ConsultationPageState extends State<ConsultationPage> {
 
             const SizedBox(height: 30),
 
-            /// Submit Button
+            /// Submit
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
