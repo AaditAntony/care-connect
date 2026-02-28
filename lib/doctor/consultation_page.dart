@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:care_connect/doctor/patient_history_page.dart';
 import 'package:care_connect/doctor/refer_patient_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -120,9 +121,34 @@ class _ConsultationPageState extends State<ConsultationPage> {
           children: [
             /// Patient Email
             Text(
-              "Patient: ${widget.patientEmail}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
+  "Patient: ${widget.patientEmail}",
+  style: const TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 16,
+  ),
+),
+
+const SizedBox(height: 8),
+
+Align(
+  alignment: Alignment.centerLeft,
+  child: TextButton.icon(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHistoryPage(
+            userId: widget.userId,
+          ),
+        ),
+      );
+    },
+    icon: const Icon(Icons.history),
+    label: const Text("View Previous History"),
+  ),
+),
+
+const SizedBox(height: 20),
 
             const SizedBox(height: 20),
 
