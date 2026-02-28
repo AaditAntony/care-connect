@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:care_connect/doctor/refer_patient_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -240,6 +241,38 @@ class _ConsultationPageState extends State<ConsultationPage> {
                 child: loading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("Complete Consultation"),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  if (diagnosisController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Please enter diagnosis before referring",
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReferPatientPage(
+                        appointmentId: widget.appointmentId,
+                        userId: widget.userId,
+                        patientEmail: widget.patientEmail,
+                        diagnosis: diagnosisController.text.trim(),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text("Refer to Another Doctor"),
               ),
             ),
           ],
