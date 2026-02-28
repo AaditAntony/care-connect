@@ -1,4 +1,5 @@
 import 'package:care_connect/doctor/appointment_page.dart';
+import 'package:care_connect/doctor/doctor_profile_page.dart';
 import 'package:care_connect/doctor/doctors_referal_page.dart';
 import 'package:care_connect/doctor/patient_page.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +22,7 @@ class _DoctorHomePageState extends State<DoctorHomePage> {
     AppointmentsPage(),
     DoctorReferralsPage(),
 
-    // DoctorProfilePage(),
-    Scaffold(),
+    DoctorProfilePage(),
   ];
 
   @override
