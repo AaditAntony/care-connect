@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ConsultationPage extends StatefulWidget {
   final String appointmentId;
@@ -36,6 +37,26 @@ class _ConsultationPageState extends State<ConsultationPage> {
 
   String? prescriptionImageBase64;
   bool loading = false;
+
+  Future<void> sendMeetingLink() async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: widget.patientEmail,
+      queryParameters: {
+        'subject': 'Online Consultation – Google Meet',
+        'body':
+            'Hello,\n\nPlease join the consultation using the Google Meet link below:\n\n',
+      },
+    );
+
+    try {
+      await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Could not open email app")));
+    }
+  }
 
   /// Pick prescription image
   Future<void> pickPrescriptionImage() async {
@@ -120,9 +141,24 @@ class _ConsultationPageState extends State<ConsultationPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Patient Email
-            Text(
-              "Patient: ${widget.patientEmail}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    "Patient: ${widget.patientEmail}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.email, color: Colors.blue),
+                  tooltip: "Send Meeting Link",
+                  onPressed: sendMeetingLink,
+                ),
+              ],
             ),
 
             const SizedBox(height: 8),
