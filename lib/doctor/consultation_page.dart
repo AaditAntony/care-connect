@@ -121,34 +121,29 @@ class _ConsultationPageState extends State<ConsultationPage> {
           children: [
             /// Patient Email
             Text(
-  "Patient: ${widget.patientEmail}",
-  style: const TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 16,
-  ),
-),
+              "Patient: ${widget.patientEmail}",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
 
-const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-Align(
-  alignment: Alignment.centerLeft,
-  child: TextButton.icon(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PatientHistoryPage(
-            userId: widget.userId,
-          ),
-        ),
-      );
-    },
-    icon: const Icon(Icons.history),
-    label: const Text("View Previous History"),
-  ),
-),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PatientHistoryPage(userId: widget.userId),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.history),
+                label: const Text("View Previous History"),
+              ),
+            ),
 
-const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             const SizedBox(height: 20),
 
