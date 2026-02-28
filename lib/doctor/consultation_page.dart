@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:care_connect/doctor/doctor_complaint_page.dart';
 import 'package:care_connect/doctor/patient_history_page.dart';
 import 'package:care_connect/doctor/refer_patient_page.dart';
 import 'package:flutter/material.dart';
@@ -330,6 +331,24 @@ class _ConsultationPageState extends State<ConsultationPage> {
                   );
                 },
                 child: const Text("Refer to Another Doctor"),
+              ),
+            ),
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DoctorComplaintPage(
+                        userId: widget.userId,
+                        patientEmail: widget.patientEmail,
+                        appointmentId: widget.appointmentId,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text("Report Patient"),
               ),
             ),
           ],
