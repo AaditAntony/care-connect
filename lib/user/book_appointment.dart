@@ -21,14 +21,19 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   String selectedSlot = "10:00 AM - 10:30 AM";
   bool loading = false;
 
-  final slots = [
+  final List<String> slots = [
     "10:00 AM - 10:30 AM",
     "11:00 AM - 11:30 AM",
     "2:00 PM - 2:30 PM",
   ];
 
   Future<void> bookAppointment() async {
-    if (problemController.text.trim().isEmpty) return;
+    if (problemController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please describe your problem")),
+      );
+      return;
+    }
 
     setState(() => loading = true);
 
@@ -39,7 +44,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         throw "User email not available";
       }
 
-      // 🔍 CHECK IF SLOT IS ALREADY BOOKED
+      /// 🔍 CHECK IF SLOT ALREADY BOOKED
       final existing = await FirebaseFirestore.instance
           .collection('appointments')
           .where('doctorId', isEqualTo: widget.doctorId)
@@ -49,23 +54,27 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
 
       if (existing.docs.isNotEmpty) {
         setState(() => loading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                "This time slot is already booked. Please choose another."),
+              "This time slot is already booked. Please choose another.",
+            ),
           ),
         );
         return;
       }
 
-      // ✅ CREATE APPOINTMENT
+      /// ✅ CREATE APPOINTMENT
       await FirebaseFirestore.instance.collection('appointments').add({
         'doctorId': widget.doctorId,
+        'doctorName': widget.doctorName, // ✅ IMPORTANT FIX
         'userId': user.uid,
         'patientEmail': user.email,
         'problem': problemController.text.trim(),
         'timeSlot': selectedSlot,
         'status': 'booked',
+        'isReferred': false,
         'createdAt': Timestamp.now(),
       });
 
@@ -75,63 +84,127 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         const SnackBar(content: Text("Appointment booked successfully")),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
 
     setState(() => loading = false);
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
         title: Text("Consult ${widget.doctorName}"),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// 🔵 Doctor Info Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, color: Colors.blue),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Text(
+                      widget.doctorName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            /// 🔵 Problem Field
+            const Text(
+              "Describe Your Problem",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
             TextField(
               controller: problemController,
               maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: "Describe your problem",
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: "Enter your symptoms or issue...",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 25),
+
+            /// 🔵 Slot Selection
+            const Text(
+              "Select Time Slot",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
 
             DropdownButtonFormField(
               value: selectedSlot,
               items: slots
                   .map(
-                    (slot) => DropdownMenuItem(
-                  value: slot,
-                  child: Text(slot),
-                ),
-              )
+                    (slot) => DropdownMenuItem(value: slot, child: Text(slot)),
+                  )
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   selectedSlot = value!;
                 });
               },
-              decoration: const InputDecoration(
-                labelText: "Select Time Slot",
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 35),
 
-            ElevatedButton(
-              onPressed: loading ? null : bookAppointment,
-              child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Book Appointment"),
+            /// 🔵 Book Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: loading ? null : bookAppointment,
+                child: loading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "Book Appointment",
+                        style: TextStyle(fontSize: 16),
+                      ),
+              ),
             ),
           ],
         ),

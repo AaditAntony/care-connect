@@ -1,7 +1,7 @@
-import 'package:care_connect/user/user_consultation_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'user_consultation_detail_page.dart';
 
 class UserAppointmentsPage extends StatelessWidget {
   const UserAppointmentsPage({super.key});
@@ -49,22 +49,37 @@ class _AppointmentsTab extends StatelessWidget {
           .collection('appointments')
           .where('userId', isEqualTo: userId)
           .where('status', isEqualTo: status)
-          .orderBy('createdAt', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        // 🔴 Error state
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        // 🔵 Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text("No appointments found"));
+        // 🟡 Empty state
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(
+            child: Text(
+              status == "booked"
+                  ? "No upcoming appointments"
+                  : "No completed appointments",
+              style: const TextStyle(color: Colors.grey),
+            ),
+          );
         }
+
+        final docs = snapshot.data!.docs;
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: snapshot.data!.docs.length,
+          itemCount: docs.length,
           itemBuilder: (context, index) {
-            final doc = snapshot.data!.docs[index];
+            final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
             return Container(
@@ -145,12 +160,21 @@ class _ReferredTab extends StatelessWidget {
           .where('isReferred', isEqualTo: true)
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text("No referred cases"));
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "No referred cases",
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         return ListView.builder(
@@ -166,7 +190,7 @@ class _ReferredTab extends StatelessWidget {
               ),
               child: ListTile(
                 leading: const Icon(Icons.swap_horiz, color: Colors.orange),
-                title: Text(data['doctorName'] ?? ""),
+                title: Text(data['doctorName'] ?? "Doctor"),
                 subtitle: const Text("You have been referred"),
               ),
             );
