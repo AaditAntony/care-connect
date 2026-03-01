@@ -1,4 +1,5 @@
 import 'package:care_connect/user/user_appointments_page.dart';
+import 'package:care_connect/user/user_dashboard_page.dart';
 import 'package:care_connect/user_profile_page.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +19,8 @@ class _HomePageState extends State<HomePage> {
 
   // 🔹 Pages MUST match bottom nav items count
   final List<Widget> pages = const [
-    DoctorListPage(), // Index 0
-    UserAppointmentsPage(), // Index 1
+    UserDashboardPage(), // 🔥 NEW DASHBOARD
+    UserAppointmentsPage(),
     UserProfilePage(),
   ];
 
