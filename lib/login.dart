@@ -1,3 +1,4 @@
+import 'package:care_connect/user/user_details_form_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,11 +29,11 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       // 1️⃣ Firebase Authentication
-      UserCredential userCred =
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      UserCredential userCred = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: emailController.text.trim(),
+            password: passwordController.text.trim(),
+          );
 
       String uid = userCred.user!.uid;
 
@@ -50,10 +51,20 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
+        // 🔵 CHECK PROFILE COMPLETION
+        if (userDoc.data().toString().contains('profileCompleted') &&
+            userDoc['profileCompleted'] == true) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const UserDetailsFormPage()),
+          );
+        }
+
         return;
       }
 
@@ -64,7 +75,6 @@ class _LoginPageState extends State<LoginPage> {
           .get();
 
       if (doctorDoc.exists) {
-
         if (doctorDoc['isBlocked'] == true) {
           await FirebaseAuth.instance.signOut();
           showMessage("Your account is blocked by admin");
@@ -75,9 +85,7 @@ class _LoginPageState extends State<LoginPage> {
         if (!doctorDoc.data().toString().contains('verificationStatus')) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const DoctorVerificationForm(),
-            ),
+            MaterialPageRoute(builder: (_) => const DoctorVerificationForm()),
           );
           return;
         }
@@ -86,31 +94,24 @@ class _LoginPageState extends State<LoginPage> {
         if (doctorDoc['verificationStatus'] == 'pending') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const DoctorPendingScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const DoctorPendingScreen()),
           );
           return;
         }
 
-       // 🔹 CASE 3: Approved doctor
+        // 🔹 CASE 3: Approved doctor
         if (doctorDoc['verificationStatus'] == 'approved') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => const DoctorHomePage(),
-            ),
+            MaterialPageRoute(builder: (_) => const DoctorHomePage()),
           );
           return;
         }
       }
 
-
-
       // 4️⃣ NO ROLE FOUND
       await FirebaseAuth.instance.signOut();
       showMessage("No role assigned to this account");
-
     } catch (e) {
       showMessage(e.toString());
     }
@@ -119,17 +120,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Login"), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -179,9 +178,7 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const DoctorRegisterPage(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const DoctorRegisterPage()),
                 );
               },
               child: const Text("Register as Doctor"),
