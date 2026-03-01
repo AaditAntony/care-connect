@@ -7,12 +7,18 @@ class DoctorPendingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F7F9),
       appBar: AppBar(
-        title: const Text("Verification Pending"),
+        elevation: 0,
+        backgroundColor: Colors.white,
         centerTitle: true,
-        automaticallyImplyLeading: false, // Disable back button
+        automaticallyImplyLeading: false,
+        title: const Text(
+          "Verification Pending",
+          style: TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
         actions: [
-          // Logout button for doctor
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -25,38 +31,87 @@ class DoctorPendingScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              // Pending icon
-              Icon(
-                Icons.hourglass_top,
-                size: 80,
-                color: Colors.orange,
-              ),
-              SizedBox(height: 20),
-
-              // Main message
-              Text(
-                "Your account is under verification",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          child: Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 20,
+                  color: Colors.black.withOpacity(0.06),
+                  offset: const Offset(0, 8),
                 ),
-                textAlign: TextAlign.center,
-              ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// Status Icon Circle
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.orange.withOpacity(0.15),
+                  ),
+                  child: const Icon(
+                    Icons.hourglass_top_rounded,
+                    size: 50,
+                    color: Colors.orange,
+                  ),
+                ),
 
-              SizedBox(height: 10),
+                const SizedBox(height: 24),
 
-              // Sub message
-              Text(
-                "Your details have been submitted successfully.\n"
-                    "Admin verification may take up to 7 days.\n\n"
-                    "You will be able to access your dashboard once approved.",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ],
+                /// Main Heading
+                const Text(
+                  "Account Under Review",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 12),
+
+                /// Description
+                const Text(
+                  "Your verification documents have been successfully submitted.\n\n"
+                  "The admin team is reviewing your credentials.\n"
+                  "This process may take up to 7 days.",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.black54,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 30),
+
+                /// Info Banner
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00897B).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Color(0xFF00897B)),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "You will gain full access to the dashboard once your account is approved.",
+                          style: TextStyle(
+                            color: Color(0xFF00897B),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
