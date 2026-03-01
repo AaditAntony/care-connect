@@ -6,31 +6,26 @@ class DoctorReferralsPage extends StatefulWidget {
   const DoctorReferralsPage({super.key});
 
   @override
-  State<DoctorReferralsPage> createState() =>
-      _DoctorReferralsPageState();
+  State<DoctorReferralsPage> createState() => _DoctorReferralsPageState();
 }
 
-class _DoctorReferralsPageState
-    extends State<DoctorReferralsPage>
+class _DoctorReferralsPageState extends State<DoctorReferralsPage>
     with SingleTickerProviderStateMixin {
-
   late TabController _tabController;
 
-  final String doctorId =
-      FirebaseAuth.instance.currentUser!.uid;
+  final String doctorId = FirebaseAuth.instance.currentUser!.uid;
 
   @override
   void initState() {
     super.initState();
-    _tabController =
-        TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   /// ACCEPT REFERRAL
   Future<void> acceptReferral(
-      String referralId,
-      Map<String, dynamic> data) async {
-
+    String referralId,
+    Map<String, dynamic> data,
+  ) async {
     // 1️⃣ Update referral status
     await FirebaseFirestore.instance
         .collection('referrals')
@@ -38,9 +33,7 @@ class _DoctorReferralsPageState
         .update({'status': 'accepted'});
 
     // 2️⃣ Create new appointment for receiving doctor
-    await FirebaseFirestore.instance
-        .collection('appointments')
-        .add({
+    await FirebaseFirestore.instance.collection('appointments').add({
       'doctorId': doctorId,
       'userId': data['userId'],
       'patientEmail': data['patientEmail'],
@@ -69,10 +62,18 @@ class _DoctorReferralsPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F7F9),
       appBar: AppBar(
-        title: const Text("Referrals"),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text("Referrals", style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.black),
         bottom: TabBar(
           controller: _tabController,
+          indicatorColor: const Color(0xFF00897B),
+          labelColor: const Color(0xFF00897B),
+          unselectedLabelColor: Colors.grey,
           tabs: const [
             Tab(text: "Incoming"),
             Tab(text: "Outgoing"),
@@ -81,10 +82,7 @@ class _DoctorReferralsPageState
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          buildIncoming(),
-          buildOutgoing(),
-        ],
+        children: [buildIncoming(), buildOutgoing()],
       ),
     );
   }
@@ -97,93 +95,112 @@ class _DoctorReferralsPageState
           .where('toDoctorId', isEqualTo: doctorId)
           .snapshots(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return const Center(
-              child: Text("No incoming referrals"));
+          return const Center(child: Text("No incoming referrals"));
         }
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: snapshot.data!.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
 
-            final data =
-                doc.data() as Map<String, dynamic>;
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding:
-                    const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      data['patientEmail'] ?? "",
-                      style: const TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
+            return Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 12,
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Patient Email
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Color(0xFF00897B),
+                        child: Icon(Icons.person, color: Colors.white),
                       ),
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                        "From: ${data['fromDoctorName']}"),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                        "Note: ${data['referralNote']}"),
-
-                    const SizedBox(height: 12),
-
-                    Text(
-                      "Status: ${data['status']}",
-                      style: TextStyle(
-                        color: data['status'] ==
-                                'pending'
-                            ? Colors.orange
-                            : data['status'] ==
-                                    'accepted'
-                                ? Colors.green
-                                : Colors.red,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          data['patientEmail'] ?? "",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
                       ),
-                    ),
+                      buildStatusBadge(data['status']),
+                    ],
+                  ),
 
-                    if (data['status'] ==
-                        'pending')
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.end,
+                  const SizedBox(height: 14),
+
+                  /// From / To Doctor
+                  Text(
+                    data.containsKey('fromDoctorName')
+                        ? "From: ${data['fromDoctorName']}"
+                        : "To: ${data['toDoctorName']}",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Note
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F9FC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      data['referralNote'] ?? "",
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
+
+                  if (data['status'] == 'pending')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-
                           TextButton(
-                            onPressed: () =>
-                                rejectReferral(
-                                    doc.id),
-                            child:
-                                const Text("Reject"),
+                            onPressed: () => rejectReferral(doc.id),
+                            child: const Text(
+                              "Reject",
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
 
+                          const SizedBox(width: 8),
+
                           ElevatedButton(
-                            onPressed: () =>
-                                acceptReferral(
-                                    doc.id, data),
-                            child:
-                                const Text("Accept"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00897B),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => acceptReferral(doc.id, data),
+                            child: const Text("Accept"),
                           ),
                         ],
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             );
           }).toList(),
@@ -197,77 +214,151 @@ class _DoctorReferralsPageState
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('referrals')
-          .where('fromDoctorId',
-              isEqualTo: doctorId)
+          .where('fromDoctorId', isEqualTo: doctorId)
           .snapshots(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
-          return const Center(
-              child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return const Center(
-              child: Text("No outgoing referrals"));
+          return const Center(child: Text("No outgoing referrals"));
         }
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: snapshot.data!.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
 
-            final data =
-                doc.data() as Map<String, dynamic>;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 12,
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Patient Email
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Color(0xFF00897B),
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          data['patientEmail'] ?? "",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      buildStatusBadge(data['status']),
+                    ],
+                  ),
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding:
-                    const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
+                  const SizedBox(height: 14),
 
-                    Text(
-                      data['patientEmail'] ?? "",
-                      style: const TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
+                  /// From / To Doctor
+                  Text(
+                    data.containsKey('fromDoctorName')
+                        ? "From: ${data['fromDoctorName']}"
+                        : "To: ${data['toDoctorName']}",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Note
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F9FC),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      data['referralNote'] ?? "",
+                      style: const TextStyle(color: Colors.black87),
+                    ),
+                  ),
+
+                  if (data['status'] == 'pending')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => rejectReferral(doc.id),
+                            child: const Text(
+                              "Reject",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00897B),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () => acceptReferral(doc.id, data),
+                            child: const Text("Accept"),
+                          ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                        "To: ${data['toDoctorName']}"),
-
-                    const SizedBox(height: 6),
-
-                    Text(
-                        "Note: ${data['referralNote']}"),
-
-                    const SizedBox(height: 12),
-
-                    Text(
-                      "Status: ${data['status']}",
-                      style: TextStyle(
-                        color: data['status'] ==
-                                'pending'
-                            ? Colors.orange
-                            : data['status'] ==
-                                    'accepted'
-                                ? Colors.green
-                                : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
             );
           }).toList(),
         );
       },
+    );
+  }
+
+  Widget buildStatusBadge(String status) {
+    Color color;
+
+    switch (status) {
+      case 'accepted':
+        color = Colors.green;
+        break;
+      case 'rejected':
+        color = Colors.red;
+        break;
+      default:
+        color = Colors.orange;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status.toUpperCase(),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
