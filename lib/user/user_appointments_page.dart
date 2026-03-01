@@ -1,7 +1,7 @@
+import 'package:care_connect/user/user_consultation_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'user_consultation_detail_page.dart';
 
 class UserAppointmentsPage extends StatelessWidget {
   const UserAppointmentsPage({super.key});
@@ -52,7 +52,6 @@ class _AppointmentsTab extends StatelessWidget {
           .orderBy('createdAt', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -65,7 +64,6 @@ class _AppointmentsTab extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
-
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
@@ -76,27 +74,22 @@ class _AppointmentsTab extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(
-                    blurRadius: 8,
-                    color: Colors.grey.withOpacity(0.1),
-                  ),
+                  BoxShadow(blurRadius: 8, color: Colors.grey.withOpacity(0.1)),
                 ],
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor:
-                      status == "completed" ? Colors.green : Colors.blue,
+                  backgroundColor: status == "completed"
+                      ? Colors.green
+                      : Colors.blue,
                   child: Icon(
-                    status == "completed"
-                        ? Icons.check
-                        : Icons.calendar_today,
+                    status == "completed" ? Icons.check : Icons.calendar_today,
                     color: Colors.white,
                   ),
                 ),
                 title: Text(
                   data['doctorName'] ?? "Doctor",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,8 +115,7 @@ class _AppointmentsTab extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                UserConsultationDetailPage(
+                            builder: (_) => UserConsultationDetailPage(
                               appointmentId: doc.id,
                             ),
                           ),
@@ -153,7 +145,6 @@ class _ReferredTab extends StatelessWidget {
           .where('isReferred', isEqualTo: true)
           .snapshots(),
       builder: (context, snapshot) {
-
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -166,21 +157,17 @@ class _ReferredTab extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
-
             final data =
-                snapshot.data!.docs[index].data()
-                    as Map<String, dynamic>;
+                snapshot.data!.docs[index].data() as Map<String, dynamic>;
 
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
               child: ListTile(
-                leading: const Icon(Icons.swap_horiz,
-                    color: Colors.orange),
+                leading: const Icon(Icons.swap_horiz, color: Colors.orange),
                 title: Text(data['doctorName'] ?? ""),
-                subtitle:
-                    const Text("You have been referred"),
+                subtitle: const Text("You have been referred"),
               ),
             );
           },
