@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,9 +23,13 @@ class DoctorProfilePage extends StatelessWidget {
     final doctorId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F7F9),
       appBar: AppBar(
-        title: const Text("My Profile"),
+        elevation: 0,
+        backgroundColor: Colors.white,
         centerTitle: true,
+        title: const Text("My Profile", style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
@@ -36,153 +41,165 @@ class DoctorProfilePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final data =
-              snapshot.data!.data() as Map<String, dynamic>?;
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
 
           if (data == null) {
             return const Center(child: Text("Profile not found"));
           }
 
           final isVerified = data['isVerified'] ?? false;
-          final verificationStatus =
-              data['verificationStatus'] ?? "pending";
+          final verificationStatus = data['verificationStatus'] ?? "pending";
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
-                /// 🔵 Profile Image + Name
-                if (data['profileImageBase64'] != null)
-                  CircleAvatar(
-                    radius: 55,
-                    backgroundImage: MemoryImage(
-                      base64Decode(data['profileImageBase64']),
-                    ),
-                  )
-                else
-                  const CircleAvatar(
-                    radius: 55,
-                    child: Icon(Icons.person, size: 50),
-                  ),
-
-                const SizedBox(height: 15),
-
-                Text(
-                  data['name'] ?? "Doctor",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 5),
-
-                Text(
-                  data['email'] ?? "",
-                  style: const TextStyle(color: Colors.grey),
-                ),
-
-                const SizedBox(height: 15),
-
-                /// Verification Badge
+                /// 🔵 Profile Header Card
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isVerified
-                        ? Colors.green.shade100
-                        : Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 15,
+                        color: Colors.black.withOpacity(0.05),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    isVerified
-                        ? "Verified Doctor"
-                        : "Status: $verificationStatus",
-                    style: TextStyle(
-                      color: isVerified
-                          ? Colors.green
-                          : Colors.orange,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    children: [
+                      /// Profile Image
+                      if (data['profileImageBase64'] != null)
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundImage: MemoryImage(
+                            base64Decode(data['profileImageBase64']),
+                          ),
+                        )
+                      else
+                        const CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Color(0xFF00897B),
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                        ),
+
+                      const SizedBox(height: 16),
+
+                      /// Name
+                      Text(
+                        data['name'] ?? "Doctor",
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// Email
+                      Text(
+                        data['email'] ?? "",
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      /// Verification Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isVerified
+                              ? Colors.green.withOpacity(0.15)
+                              : Colors.orange.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          isVerified
+                              ? "Verified Doctor"
+                              : "Status: $verificationStatus",
+                          style: TextStyle(
+                            color: isVerified ? Colors.green : Colors.orange,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
                 const SizedBox(height: 30),
 
-                /// 🔵 Professional Details Card
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-
-                        buildDetailRow(
-                            "Qualification",
-                            data['qualification'] ?? ""),
-
-                        buildDetailRow(
-                            "Specialization",
-                            data['specialization'] ?? ""),
-
-                        buildDetailRow(
-                            "Experience",
-                            "${data['experience'] ?? ""} years"),
-                      ],
-                    ),
+                /// 🔵 Professional Details Section
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    "Professional Details",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 12),
 
-                /// 🔵 Certificate Preview
-                if (data['certificateBase64'] != null)
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Certificate",
-                        style: TextStyle(
-                            fontWeight:
-                                FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Image.memory(
-                        base64Decode(
-                            data['certificateBase64']),
-                        height: 150,
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 12,
+                        color: Colors.black.withOpacity(0.05),
                       ),
                     ],
                   ),
-
-                const SizedBox(height: 25),
-
-                /// 🔵 Signature Preview
-                if (data['signatureBase64'] != null)
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                  child: Column(
                     children: [
-                      const Text(
-                        "Signature",
-                        style: TextStyle(
-                            fontWeight:
-                                FontWeight.bold),
+                      buildDetailTile(
+                        Icons.school,
+                        "Qualification",
+                        data['qualification'] ?? "",
                       ),
-                      const SizedBox(height: 10),
-                      Image.memory(
-                        base64Decode(
-                            data['signatureBase64']),
-                        height: 80,
+                      buildDetailTile(
+                        Icons.medical_services,
+                        "Specialization",
+                        data['specialization'] ?? "",
+                      ),
+                      buildDetailTile(
+                        Icons.workspace_premium,
+                        "Experience",
+                        "${data['experience'] ?? ""} years",
                       ),
                     ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                /// 🔵 Certificate Section
+                if (data['certificateBase64'] != null)
+                  buildImageSection(
+                    title: "Certificate",
+                    image: base64Decode(data['certificateBase64']),
+                    height: 170,
+                  ),
+
+                const SizedBox(height: 20),
+
+                /// 🔵 Signature Section
+                if (data['signatureBase64'] != null)
+                  buildImageSection(
+                    title: "Signature",
+                    image: base64Decode(data['signatureBase64']),
+                    height: 90,
                   ),
 
                 const SizedBox(height: 40),
@@ -193,9 +210,16 @@ class DoctorProfilePage extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     onPressed: () => logout(context),
-                    child: const Text("Logout"),
+                    child: const Text(
+                      "Logout",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ],
@@ -206,26 +230,60 @@ class DoctorProfilePage extends StatelessWidget {
     );
   }
 
-  Widget buildDetailRow(String title, String value) {
+  Widget buildDetailTile(IconData icon, String title, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
+          Icon(icon, color: const Color(0xFF00897B)),
+          const SizedBox(width: 12),
           Expanded(
-            flex: 2,
-            child: Text(
-              "$title:",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
             ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(value),
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildImageSection({
+    required String title,
+    required Uint8List image,
+    required double height,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(blurRadius: 10, color: Colors.black.withOpacity(0.05)),
+            ],
+          ),
+          child: Image.memory(image, height: height, fit: BoxFit.contain),
+        ),
+      ],
     );
   }
 }
