@@ -135,177 +135,242 @@ class _ConsultationPageState extends State<ConsultationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Consultation")),
+      backgroundColor: const Color(0xFFF4F7F9),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text(
+          "Consultation",
+          style: TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Patient Email
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    "Patient: ${widget.patientEmail}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            /// 🔷 Patient Header Card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.black.withOpacity(0.05),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.email, color: Colors.blue),
-                  tooltip: "Send Meeting Link",
-                  onPressed: sendMeetingLink,
-                ),
-              ],
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Color(0xFF00897B),
+                        child: Icon(Icons.person, color: Colors.white),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          widget.patientEmail,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.email, color: Color(0xFF00897B)),
+                        onPressed: sendMeetingLink,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PatientHistoryPage(userId: widget.userId),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.history),
+                    label: const Text("View Previous History"),
+                  ),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
 
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PatientHistoryPage(userId: widget.userId),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.history),
-                label: const Text("View Previous History"),
+            /// 🔷 Diagnosis Section
+            _buildSectionCard(
+              title: "Diagnosis",
+              child: TextField(
+                controller: diagnosisController,
+                maxLines: 3,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            /// Diagnosis
-            const Text(
-              "Diagnosis",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: diagnosisController,
-              maxLines: 3,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Medicines
-            const Text(
-              "Medicines",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: medicineController,
-                    decoration: const InputDecoration(hintText: "Add medicine"),
+            /// 🔷 Medicines Section
+            _buildSectionCard(
+              title: "Medicines",
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: medicineController,
+                          decoration: const InputDecoration(
+                            hintText: "Add medicine",
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Color(0xFF00897B)),
+                        onPressed: () {
+                          if (medicineController.text.trim().isNotEmpty) {
+                            setState(() {
+                              medicinesList.add(medicineController.text.trim());
+                              medicineController.clear();
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    if (medicineController.text.trim().isNotEmpty) {
-                      setState(() {
-                        medicinesList.add(medicineController.text.trim());
-                        medicineController.clear();
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-
-            ...medicinesList.map((med) => ListTile(title: Text(med))),
-
-            const SizedBox(height: 20),
-
-            /// Activities
-            const Text(
-              "Activities",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: activityController,
-                    decoration: const InputDecoration(hintText: "Add activity"),
+                  ...medicinesList.map(
+                    (med) => ListTile(
+                      leading: const Icon(
+                        Icons.medication,
+                        color: Color(0xFF00897B),
+                      ),
+                      title: Text(med),
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    if (activityController.text.trim().isNotEmpty) {
-                      setState(() {
-                        activitiesList.add(activityController.text.trim());
-                        activityController.clear();
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-
-            ...activitiesList.map((act) => ListTile(title: Text(act))),
-
-            const SizedBox(height: 20),
-
-            /// Notes
-            const Text(
-              "Additional Notes",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(border: OutlineInputBorder()),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// Prescription Image
-            ElevatedButton(
-              onPressed: pickPrescriptionImage,
-              child: const Text("Upload Prescription Image"),
-            ),
-
-            if (prescriptionImageBase64 != null)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Image.memory(
-                  base64Decode(prescriptionImageBase64!),
-                  height: 120,
-                ),
+                ],
               ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// 🔷 Activities Section
+            _buildSectionCard(
+              title: "Activities",
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: activityController,
+                          decoration: const InputDecoration(
+                            hintText: "Add activity",
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Color(0xFF00897B)),
+                        onPressed: () {
+                          if (activityController.text.trim().isNotEmpty) {
+                            setState(() {
+                              activitiesList.add(
+                                activityController.text.trim(),
+                              );
+                              activityController.clear();
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  ...activitiesList.map(
+                    (act) => ListTile(
+                      leading: const Icon(
+                        Icons.fitness_center,
+                        color: Color(0xFF00897B),
+                      ),
+                      title: Text(act),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// 🔷 Notes Section
+            _buildSectionCard(
+              title: "Additional Notes",
+              child: TextField(
+                controller: notesController,
+                maxLines: 3,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// 🔷 Prescription Upload
+            _buildSectionCard(
+              title: "Prescription Image",
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00897B),
+                    ),
+                    onPressed: pickPrescriptionImage,
+                    child: const Text("Upload Prescription Image"),
+                  ),
+                  if (prescriptionImageBase64 != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.memory(
+                        base64Decode(prescriptionImageBase64!),
+                        height: 120,
+                      ),
+                    ),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 30),
 
-            /// Submit
+            /// 🔷 Complete Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00897B),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
                 onPressed: loading ? null : submitConsultation,
                 child: loading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("Complete Consultation"),
               ),
             ),
+
             const SizedBox(height: 15),
 
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF00897B)),
+                ),
                 onPressed: () {
                   if (diagnosisController.text.trim().isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -333,7 +398,11 @@ class _ConsultationPageState extends State<ConsultationPage> {
                 child: const Text("Refer to Another Doctor"),
               ),
             ),
-            Center(
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+              width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () {
@@ -353,6 +422,30 @@ class _ConsultationPageState extends State<ConsultationPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(blurRadius: 10, color: Colors.black.withOpacity(0.05)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
       ),
     );
   }
