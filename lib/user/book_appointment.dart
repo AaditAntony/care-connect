@@ -95,40 +95,57 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
-      appBar: AppBar(
-        title: Text("Consult ${widget.doctorName}"),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xFFF4F6FB),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔵 Doctor Info Card
+            const SizedBox(height: 40),
+
+            /// 🔷 HEADER
+            const Text(
+              "Book Appointment",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// 🔷 DOCTOR CARD
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+                  colors: [Color(0xFF5C6BC0), Color(0xFF3949AB)],
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
+                    color: Colors.black.withOpacity(0.08),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
                   const CircleAvatar(
-                    radius: 28,
+                    radius: 32,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, color: Colors.blue),
+                    child: Icon(
+                      Icons.person,
+                      color: Color(0xFF5C6BC0),
+                      size: 32,
+                    ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       widget.doctorName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -136,76 +153,114 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 30),
 
-            /// 🔵 Problem Field
+            /// 🔷 PROBLEM SECTION
             const Text(
-              "Describe Your Problem",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              "Describe Your Concern",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
-            const SizedBox(height: 8),
 
-            TextField(
-              controller: problemController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: "Enter your symptoms or issue...",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 10),
+
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: problemController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  hintText: "Enter your symptoms or issue...",
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.all(16),
                 ),
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 30),
 
-            /// 🔵 Slot Selection
+            /// 🔷 SLOT SECTION
             const Text(
-              "Select Time Slot",
-              style: TextStyle(fontWeight: FontWeight.bold),
+              "Choose Time Slot",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
-            const SizedBox(height: 8),
 
-            DropdownButtonFormField(
-              value: selectedSlot,
-              items: slots
-                  .map(
-                    (slot) => DropdownMenuItem(value: slot, child: Text(slot)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedSlot = value!;
-                });
-              },
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+            const SizedBox(height: 10),
+
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 10,
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ],
+              ),
+              child: DropdownButtonFormField<String>(
+                value: selectedSlot,
+                icon: const Icon(Icons.keyboard_arrow_down),
+                decoration: const InputDecoration(border: InputBorder.none),
+                items: slots
+                    .map(
+                      (slot) =>
+                          DropdownMenuItem(value: slot, child: Text(slot)),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedSlot = value!;
+                  });
+                },
               ),
             ),
 
-            const SizedBox(height: 35),
+            const SizedBox(height: 40),
 
-            /// 🔵 Book Button
+            /// 🔷 BOOK BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: const Color(0xFF5C6BC0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  elevation: 0,
                 ),
                 onPressed: loading ? null : bookAppointment,
                 child: loading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text(
-                        "Book Appointment",
-                        style: TextStyle(fontSize: 16),
+                        "Confirm Appointment",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
               ),
             ),
+
+            const SizedBox(height: 30),
           ],
         ),
       ),
