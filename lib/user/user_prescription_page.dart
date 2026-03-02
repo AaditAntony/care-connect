@@ -1,180 +1,180 @@
-import 'dart:convert';
+// import 'dart:convert';
 
-import 'package:care_connect/user/user_complaint_page.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:care_connect/user/user_complaint_page.dart';
+// import 'package:flutter/material.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserPrescriptionPage extends StatelessWidget {
-  final String appointmentId;
-  final String doctorId;
+// class UserPrescriptionPage extends StatelessWidget {
+//   final String appointmentId;
+//   final String doctorId;
 
-  const UserPrescriptionPage({
-    super.key,
-    required this.appointmentId, required this.doctorId,
-  });
+//   const UserPrescriptionPage({
+//     super.key,
+//     required this.appointmentId, required this.doctorId,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    final String userId = FirebaseAuth.instance.currentUser!.uid;
+//   @override
+//   Widget build(BuildContext context) {
+//     final String userId = FirebaseAuth.instance.currentUser!.uid;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Prescription"),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ================= MEDICINE SECTION =================
-            const Text(
-              "Prescribed Medicines",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text("My Prescription"),
+//       ),
+//       body: SingleChildScrollView(
+//         padding: const EdgeInsets.all(16),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // ================= MEDICINE SECTION =================
+//             const Text(
+//               "Prescribed Medicines",
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 8),
 
-            // 🔥 Show medicines for THIS USER & THIS APPOINTMENT
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('prescriptions')
-                  .where('appointmentId', isEqualTo: appointmentId)
-                  .where('userId', isEqualTo: userId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
-                }
+//             // 🔥 Show medicines for THIS USER & THIS APPOINTMENT
+//             StreamBuilder<QuerySnapshot>(
+//               stream: FirebaseFirestore.instance
+//                   .collection('prescriptions')
+//                   .where('appointmentId', isEqualTo: appointmentId)
+//                   .where('userId', isEqualTo: userId)
+//                   .snapshots(),
+//               builder: (context, snapshot) {
+//                 if (!snapshot.hasData) {
+//                   return const CircularProgressIndicator();
+//                 }
 
-                if (snapshot.data!.docs.isEmpty) {
-                  return const Text("No medicines prescribed yet");
-                }
+//                 if (snapshot.data!.docs.isEmpty) {
+//                   return const Text("No medicines prescribed yet");
+//                 }
 
-                return Column(
-                  children: snapshot.data!.docs.map((doc) {
-                    return ListTile(
-                      leading: const Icon(Icons.medical_services),
-                      title: Text(doc['medicine']),
+//                 return Column(
+//                   children: snapshot.data!.docs.map((doc) {
+//                     return ListTile(
+//                       leading: const Icon(Icons.medical_services),
+//                       title: Text(doc['medicine']),
 
-                    );
-                  }).toList(),
+//                     );
+//                   }).toList(),
 
-                );
-              },
-            ),
+//                 );
+//               },
+//             ),
 
-            const SizedBox(height: 30),
+//             const SizedBox(height: 30),
 
-            // ================= ACTIVITY SECTION =================
-            const Text(
-              "Assigned Activities",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+//             // ================= ACTIVITY SECTION =================
+//             const Text(
+//               "Assigned Activities",
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 8),
 
-            // 🔥 Show activities for THIS USER & THIS APPOINTMENT
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('activities')
-                  .where('appointmentId', isEqualTo: appointmentId)
-                  .where('userId', isEqualTo: userId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const CircularProgressIndicator();
-                }
+//             // 🔥 Show activities for THIS USER & THIS APPOINTMENT
+//             StreamBuilder<QuerySnapshot>(
+//               stream: FirebaseFirestore.instance
+//                   .collection('activities')
+//                   .where('appointmentId', isEqualTo: appointmentId)
+//                   .where('userId', isEqualTo: userId)
+//                   .snapshots(),
+//               builder: (context, snapshot) {
+//                 if (!snapshot.hasData) {
+//                   return const CircularProgressIndicator();
+//                 }
 
-                if (snapshot.data!.docs.isEmpty) {
-                  return const Text("No activities assigned yet");
-                }
+//                 if (snapshot.data!.docs.isEmpty) {
+//                   return const Text("No activities assigned yet");
+//                 }
 
-                return Column(
-                  children: snapshot.data!.docs.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
+//                 return Column(
+//                   children: snapshot.data!.docs.map((doc) {
+//                     final data = doc.data() as Map<String, dynamic>;
 
-                    return CheckboxListTile(
-                      title: Text(data['activity']),
-                      value: data['isCompleted'],
-                      onChanged: (value) {
-                        FirebaseFirestore.instance
-                            .collection('activities')
-                            .doc(doc.id)
-                            .update({
-                          'isCompleted': value,
-                        });
-                      },
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 40),
+//                     return CheckboxListTile(
+//                       title: Text(data['activity']),
+//                       value: data['isCompleted'],
+//                       onChanged: (value) {
+//                         FirebaseFirestore.instance
+//                             .collection('activities')
+//                             .doc(doc.id)
+//                             .update({
+//                           'isCompleted': value,
+//                         });
+//                       },
+//                     );
+//                   }).toList(),
+//                 );
+//               },
+//             ),
+//             const SizedBox(height: 40),
 
-            const Divider(thickness: 1.5),
+//             const Divider(thickness: 1.5),
 
-            const SizedBox(height: 20),
+//             const SizedBox(height: 20),
 
-// ================= DOCTOR SIGNATURE SECTION =================
-            StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('doctors')
-                  .doc(doctorId)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return const SizedBox();
-                }
+// // ================= DOCTOR SIGNATURE SECTION =================
+//             StreamBuilder<DocumentSnapshot>(
+//               stream: FirebaseFirestore.instance
+//                   .collection('doctors')
+//                   .doc(doctorId)
+//                   .snapshots(),
+//               builder: (context, snapshot) {
+//                 if (!snapshot.hasData || !snapshot.data!.exists) {
+//                   return const SizedBox();
+//                 }
 
-                final data = snapshot.data!.data() as Map<String, dynamic>;
+//                 final data = snapshot.data!.data() as Map<String, dynamic>;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Prescribed By",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
+//                 return Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     const Text(
+//                       "Prescribed By",
+//                       style: TextStyle(fontWeight: FontWeight.bold),
+//                     ),
+//                     const SizedBox(height: 6),
 
-                    Text(
-                      data['name'] ?? 'Doctor',
-                      style: const TextStyle(fontSize: 16),
-                    ),
+//                     Text(
+//                       data['name'] ?? 'Doctor',
+//                       style: const TextStyle(fontSize: 16),
+//                     ),
 
-                    const SizedBox(height: 10),
+//                     const SizedBox(height: 10),
 
-                    if (data['signatureBase64'] != null)
-                      Image.memory(
-                        base64Decode(data['signatureBase64']),
-                        height: 60,
-                      ),
-                  ],
-                );
-              },
-            ),
+//                     if (data['signatureBase64'] != null)
+//                       Image.memory(
+//                         base64Decode(data['signatureBase64']),
+//                         height: 60,
+//                       ),
+//                   ],
+//                 );
+//               },
+//             ),
 
-            const SizedBox(height: 30),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                minimumSize: const Size(double.infinity, 45),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => UserComplaintPage(
-                      doctorId: doctorId,
-                    ),
-                  ),
-                );
-              },
-              child: const Text("Report Doctor"),
-            ),
+//             const SizedBox(height: 30),
+//             ElevatedButton(
+//               style: ElevatedButton.styleFrom(
+//                 backgroundColor: Colors.red,
+//                 minimumSize: const Size(double.infinity, 45),
+//               ),
+//               onPressed: () {
+//                 Navigator.push(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (_) => UserComplaintPage(
+//                       doctorId: doctorId,
+//                     ),
+//                   ),
+//                 );
+//               },
+//               child: const Text("Report Doctor"),
+//             ),
 
-          ],
-        ),
-      ),
-    );
-  }
-}
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
