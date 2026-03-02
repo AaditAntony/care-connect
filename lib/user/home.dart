@@ -1,4 +1,4 @@
-import 'package:care_connect/user_profile_page.dart';
+import 'package:care_connect/user/user_profile_page.dart';
 import 'package:flutter/material.dart';
 
 import 'user_dashboard_page.dart';
