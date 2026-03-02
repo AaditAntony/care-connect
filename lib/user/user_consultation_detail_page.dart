@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:care_connect/user/user_complaint_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -107,6 +108,22 @@ class UserConsultationDetailPage extends StatelessWidget {
                   ),
 
                 const SizedBox(height: 30),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UserComplaintPage(
+                          doctorId: data['doctorId'],
+                          doctorName: data['doctorName'],
+                          appointmentId: appointmentId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text("Report Doctor"),
+                ),
               ],
             ),
           );
