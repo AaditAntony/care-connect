@@ -3,6 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user_consultation_detail_page.dart';
 
+/// 🔷 File-level colors (Fixes scope issue)
+const Color kPrimary = Color(0xFF5C6BC0);
+const Color kBackground = Color(0xFFF4F6FB);
+
 class UserAppointmentsPage extends StatelessWidget {
   const UserAppointmentsPage({super.key});
 
@@ -11,11 +15,21 @@ class UserAppointmentsPage extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F6FA),
+        backgroundColor: kBackground,
         appBar: AppBar(
-          title: const Text("My Appointments"),
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
           centerTitle: true,
+          title: const Text(
+            "My Appointments",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           bottom: const TabBar(
+            labelColor: kPrimary,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: kPrimary,
+            indicatorWeight: 3,
             tabs: [
               Tab(text: "Upcoming"),
               Tab(text: "Completed"),
@@ -37,7 +51,6 @@ class UserAppointmentsPage extends StatelessWidget {
 
 class _AppointmentsTab extends StatelessWidget {
   final String status;
-
   const _AppointmentsTab({required this.status});
 
   @override
@@ -51,17 +64,14 @@ class _AppointmentsTab extends StatelessWidget {
           .where('status', isEqualTo: status)
           .snapshots(),
       builder: (context, snapshot) {
-        // 🔴 Error state
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         }
 
-        // 🔵 Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // 🟡 Empty state
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(
             child: Text(
@@ -74,58 +84,32 @@ class _AppointmentsTab extends StatelessWidget {
         }
 
         final docs = snapshot.data!.docs;
+        final bool isCompleted = status == "completed";
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
 
             return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 boxShadow: [
-                  BoxShadow(blurRadius: 8, color: Colors.grey.withOpacity(0.1)),
+                  BoxShadow(
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                    color: Colors.black.withOpacity(0.05),
+                  ),
                 ],
               ),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: status == "completed"
-                      ? Colors.green
-                      : Colors.blue,
-                  child: Icon(
-                    status == "completed" ? Icons.check : Icons.calendar_today,
-                    color: Colors.white,
-                  ),
-                ),
-                title: Text(
-                  data['doctorName'] ?? "Doctor",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 4),
-                    Text("Time: ${data['timeSlot']}"),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Status: ${data['status']}",
-                      style: TextStyle(
-                        color: status == "completed"
-                            ? Colors.green
-                            : Colors.blue,
-                      ),
-                    ),
-                  ],
-                ),
-                trailing: status == "completed"
-                    ? const Icon(Icons.arrow_forward_ios, size: 16)
-                    : null,
-                onTap: status == "completed"
+              child: InkWell(
+                borderRadius: BorderRadius.circular(22),
+                onTap: isCompleted
                     ? () {
                         Navigator.push(
                           context,
@@ -137,6 +121,77 @@ class _AppointmentsTab extends StatelessWidget {
                         );
                       }
                     : null,
+                child: Row(
+                  children: [
+                    /// 🔹 Icon Circle
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: isCompleted
+                          ? Colors.green.withOpacity(0.15)
+                          : kPrimary.withOpacity(0.15),
+                      child: Icon(
+                        isCompleted ? Icons.check_circle : Icons.calendar_today,
+                        color: isCompleted ? Colors.green : kPrimary,
+                      ),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    /// 🔹 Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data['doctorName'] ?? "Doctor",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            data['timeSlot'] ?? "",
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          /// 🔹 Status Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isCompleted
+                                  ? Colors.green.withOpacity(0.15)
+                                  : kPrimary.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              data['status'].toString().toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isCompleted ? Colors.green : kPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (isCompleted)
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                  ],
+                ),
               ),
             );
           },
@@ -178,20 +233,41 @@ class _ReferredTab extends StatelessWidget {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
             final data =
                 snapshot.data!.docs[index].data() as Map<String, dynamic>;
 
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                    color: Colors.black.withOpacity(0.05),
+                  ),
+                ],
               ),
-              child: ListTile(
-                leading: const Icon(Icons.swap_horiz, color: Colors.orange),
-                title: Text(data['doctorName'] ?? "Doctor"),
-                subtitle: const Text("You have been referred"),
+              child: Row(
+                children: const [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Color(0xFFFFF3E0),
+                    child: Icon(Icons.swap_horiz, color: Colors.orange),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      "You have been referred to another doctor",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
             );
           },
