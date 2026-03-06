@@ -11,6 +11,9 @@ import 'doctor/doctor_verification_form.dart';
 import 'user/register.dart';
 import 'user/home.dart';
 
+const Color kPrimary = Color(0xFF5C6BC0);
+const Color kBackground = Color(0xFFF4F6FB);
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -28,7 +31,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => loading = true);
 
     try {
-      // 1️⃣ Firebase Authentication
       UserCredential userCred = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
             email: emailController.text.trim(),
@@ -37,7 +39,6 @@ class _LoginPageState extends State<LoginPage> {
 
       String uid = userCred.user!.uid;
 
-      // 2️⃣ CHECK USER COLLECTION
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
@@ -51,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // 🔵 CHECK PROFILE COMPLETION
         if (userDoc.data().toString().contains('profileCompleted') &&
             userDoc['profileCompleted'] == true) {
           Navigator.pushReplacement(
@@ -68,7 +68,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // DOCTOR COLLECTION CHECK
       DocumentSnapshot doctorDoc = await FirebaseFirestore.instance
           .collection('doctors')
           .doc(uid)
@@ -81,7 +80,6 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // 🔹 CASE 1: Verification form NOT submitted
         if (!doctorDoc.data().toString().contains('verificationStatus')) {
           Navigator.pushReplacement(
             context,
@@ -90,7 +88,6 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // 🔹 CASE 2: Submitted, waiting for admin
         if (doctorDoc['verificationStatus'] == 'pending') {
           Navigator.pushReplacement(
             context,
@@ -99,7 +96,6 @@ class _LoginPageState extends State<LoginPage> {
           return;
         }
 
-        // 🔹 CASE 3: Approved doctor
         if (doctorDoc['verificationStatus'] == 'approved') {
           Navigator.pushReplacement(
             context,
@@ -109,7 +105,6 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
 
-      // 4️⃣ NO ROLE FOUND
       await FirebaseAuth.instance.signOut();
       showMessage("No role assigned to this account");
     } catch (e) {
@@ -128,65 +123,218 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login"), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                border: OutlineInputBorder(),
+      backgroundColor: kBackground,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 60),
+
+              const Text(
+                "Care Connect",
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 15),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                border: OutlineInputBorder(),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Login to your account",
+                style: TextStyle(color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 20),
 
-            // LOGIN BUTTON
-            ElevatedButton(
-              onPressed: loading ? null : login,
-              child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("Login"),
-            ),
+              const SizedBox(height: 50),
 
-            const SizedBox(height: 10),
+              /// EMAIL
+              const Text(
+                "Email",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
 
-            // USER REGISTER
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RegisterPage()),
-                );
-              },
-              child: const Text("Create User Account"),
-            ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      color: Colors.black.withOpacity(0.05),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    hintText: "Enter your email",
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(18),
+                  ),
+                ),
+              ),
 
-            // DOCTOR REGISTER
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DoctorRegisterPage()),
-                );
-              },
-              child: const Text("Register as Doctor"),
-            ),
-          ],
+              const SizedBox(height: 25),
+
+              /// PASSWORD
+              const Text(
+                "Password",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      color: Colors.black.withOpacity(0.05),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    hintText: "Enter your password",
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(18),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              /// 🔥 PREMIUM LOGIN BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: EdgeInsets.zero,
+                  ),
+                  onPressed: loading ? null : login,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF5C6BC0), Color(0xFF3949AB)],
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Container(
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: loading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "Login",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 50),
+
+              const Center(
+                child: Text(
+                  "New here?",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// 🔥 USER REGISTER CARD
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterPage()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 12,
+                        color: Colors.black.withOpacity(0.05),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.person, color: Color(0xFF5C6BC0)),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: Text(
+                          "Create User Account",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              /// 🔥 DOCTOR REGISTER CARD
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const DoctorRegisterPage(),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2F1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.local_hospital, color: Color(0xFF00897B)),
+                      SizedBox(width: 15),
+                      Expanded(
+                        child: Text(
+                          "Register as Doctor",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-//done
