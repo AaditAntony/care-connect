@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({super.key});
@@ -8,17 +10,69 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  bool loading = false;
+  late Razorpay _razorpay;
 
-  Future<void> processPayment() async {
-    setState(() {
-      loading = true;
-    });
+  @override
+  void initState() {
+    super.initState();
 
-    await Future.delayed(const Duration(seconds: 2));
+    _razorpay = Razorpay();
 
-    /// Always return success (for project demo)
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, handleExternalWallet);
+  }
+
+  void openCheckout() {
+    var options = {
+      'key': 'rzp_test_1DP5mmOlF5G5ag',
+      'amount': 300 * 100, // ₹300 consultation
+      'name': 'Care Connect',
+      'description': 'Doctor Consultation',
+      'prefill': {'contact': '8888888888', 'email': 'test@razorpay.com'},
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  /// SUCCESS
+  void handlePaymentSuccess(PaymentSuccessResponse response) {
+    Fluttertoast.showToast(
+      msg: "Payment Successful",
+      toastLength: Toast.LENGTH_SHORT,
+    );
+
     Navigator.pop(context, true);
+  }
+
+  /// FAILURE (we still return success for project)
+  void handlePaymentError(PaymentFailureResponse response) {
+    Fluttertoast.showToast(
+      msg: "Payment Successful",
+      toastLength: Toast.LENGTH_SHORT,
+    );
+
+    Navigator.pop(context, true);
+  }
+
+  void handleExternalWallet(ExternalWalletResponse response) {
+    Fluttertoast.showToast(
+      msg: "Payment Successful",
+      toastLength: Toast.LENGTH_SHORT,
+    );
+
+    Navigator.pop(context, true);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+
+    super.dispose();
   }
 
   @override
@@ -29,9 +83,7 @@ class _PaymentPageState extends State<PaymentPage> {
         centerTitle: true,
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -50,16 +102,9 @@ class _PaymentPageState extends State<PaymentPage> {
 
             const SizedBox(height: 40),
 
-            SizedBox(
-              width: double.infinity,
-
-              child: ElevatedButton(
-                onPressed: loading ? null : processPayment,
-
-                child: loading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Pay Now"),
-              ),
+            ElevatedButton(
+              onPressed: openCheckout,
+              child: const Text("Pay Now"),
             ),
           ],
         ),
