@@ -33,9 +33,8 @@ class _PaymentPageState extends State<PaymentPage> {
         padding: const EdgeInsets.all(20),
 
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 40),
-
             const Icon(Icons.payment, size: 80, color: Colors.blue),
 
             const SizedBox(height: 20),
@@ -46,7 +45,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
             const Text(
               "₹300",
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 40),
