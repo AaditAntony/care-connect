@@ -1,3 +1,4 @@
+import 'package:care_connect/user/payment_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -90,6 +91,23 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
     }
 
     setState(() => loading = false);
+  }
+
+  Future<void> handlePayment() async {
+    bool? paid = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PaymentPage()),
+    );
+
+    if (paid == true) {
+      await bookAppointment();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Payment Successful. Appointment booked."),
+        ),
+      );
+    }
   }
 
   @override
@@ -240,7 +258,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
                   ),
                   elevation: 0,
                 ),
-                onPressed: loading ? null : bookAppointment,
+                onPressed: loading ? null : handlePayment,
                 child: loading
                     ? const SizedBox(
                         height: 22,
