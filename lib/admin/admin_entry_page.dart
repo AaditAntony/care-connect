@@ -1,3 +1,4 @@
+import 'package:care_connect/admin/admin_overview_page.dart';
 import 'package:flutter/material.dart';
 import 'admin_doctor_approval_page.dart';
 import 'admin_complaints_page.dart';
@@ -144,13 +145,13 @@ class _AdminEntryPageState extends State<AdminEntryPage> {
   Widget buildSelectedPage() {
     switch (selectedIndex) {
       case 0:
-        return buildOverview();
+        return AdminOverviewPage();
       case 1:
         return const AdminDoctorApprovalPage();
       case 2:
         return const AdminComplaintsPage();
       default:
-        return const SizedBox();
+        return AdminOverviewPage();
     }
   }
 

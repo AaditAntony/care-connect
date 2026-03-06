@@ -10,7 +10,7 @@ class AdminOverviewPage extends StatelessWidget {
       backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Admin Overview"),
+        title: const Text("Admin Dashboard"),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -18,58 +18,70 @@ class AdminOverviewPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             const Text(
-              "Dashboard",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              "System Overview",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
 
             Wrap(
-              spacing: 20,
-              runSpacing: 20,
+              spacing: 15,
+              runSpacing: 15,
               children: [
-
-                buildStatCard(
-                  title: "Total Users",
-                  icon: Icons.people,
-                  color: Colors.blue,
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .snapshots(),
+                statCard(
+                  "Total Users",
+                  Icons.people,
+                  Colors.blue,
+                  FirebaseFirestore.instance.collection('users').snapshots(),
                 ),
 
-                buildStatCard(
-                  title: "Verified Doctors",
-                  icon: Icons.medical_services,
-                  color: Colors.green,
-                  stream: FirebaseFirestore.instance
+                statCard(
+                  "Approved Doctors",
+                  Icons.medical_services,
+                  Colors.green,
+                  FirebaseFirestore.instance
                       .collection('doctors')
-                      .where('isVerified', isEqualTo: true)
+                      .where('verificationStatus', isEqualTo: 'approved')
                       .snapshots(),
                 ),
 
-                buildStatCard(
-                  title: "Pending Verifications",
-                  icon: Icons.pending_actions,
-                  color: Colors.orange,
-                  stream: FirebaseFirestore.instance
+                statCard(
+                  "Pending Doctors",
+                  Icons.pending_actions,
+                  Colors.orange,
+                  FirebaseFirestore.instance
                       .collection('doctors')
                       .where('verificationStatus', isEqualTo: 'pending')
                       .snapshots(),
                 ),
 
-                buildStatCard(
-                  title: "Pending Complaints",
-                  icon: Icons.report_problem,
-                  color: Colors.red,
-                  stream: FirebaseFirestore.instance
+                statCard(
+                  "Pending Complaints",
+                  Icons.report_problem,
+                  Colors.red,
+                  FirebaseFirestore.instance
                       .collection('complaints')
                       .where('status', isEqualTo: 'pending')
+                      .snapshots(),
+                ),
+
+                statCard(
+                  "Appointments",
+                  Icons.calendar_today,
+                  Colors.purple,
+                  FirebaseFirestore.instance
+                      .collection('appointments')
+                      .snapshots(),
+                ),
+
+                statCard(
+                  "Referred Cases",
+                  Icons.swap_horiz,
+                  Colors.teal,
+                  FirebaseFirestore.instance
+                      .collection('appointments')
+                      .where('isReferred', isEqualTo: true)
                       .snapshots(),
                 ),
               ],
@@ -79,13 +91,10 @@ class AdminOverviewPage extends StatelessWidget {
 
             const Text(
               "Recent Appointments",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
 
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -94,40 +103,45 @@ class AdminOverviewPage extends StatelessWidget {
                   .limit(5)
                   .snapshots(),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Text("Error loading appointments");
+                }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Text("No recent appointments");
+                if (snapshot.data!.docs.isEmpty) {
+                  return const Text("No appointments yet");
                 }
 
                 return Column(
                   children: snapshot.data!.docs.map((doc) {
-
                     final data = doc.data() as Map<String, dynamic>;
 
+                    String status = data['status'] ?? "";
+
+                    Color statusColor = Colors.grey;
+
+                    if (status == "completed") statusColor = Colors.green;
+                    if (status == "booked") statusColor = Colors.orange;
+                    if (data['isReferred'] == true) statusColor = Colors.blue;
+
                     return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      margin: const EdgeInsets.only(bottom: 10),
                       child: ListTile(
                         leading: const Icon(Icons.calendar_today),
                         title: Text(
-                          "Patient: ${data['patientName'] ?? 'Unknown'}",
+                          "Patient: ${data['patientEmail'] ?? "Unknown"}",
                         ),
                         subtitle: Text(
-                          "Doctor: ${data['doctorName'] ?? 'Unknown'}",
+                          "Doctor: ${data['doctorName'] ?? "Unknown"}",
                         ),
                         trailing: Text(
-                          data['status'] ?? "",
+                          status,
                           style: TextStyle(
-                            color: data['status'] == 'approved'
-                                ? Colors.green
-                                : Colors.orange,
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -142,72 +156,56 @@ class AdminOverviewPage extends StatelessWidget {
     );
   }
 
-  /// REAL-TIME STAT CARD
-  Widget buildStatCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required Stream<QuerySnapshot> stream,
-  }) {
+  Widget statCard(
+    String title,
+    IconData icon,
+    Color color,
+    Stream<QuerySnapshot> stream,
+  ) {
     return StreamBuilder<QuerySnapshot>(
       stream: stream,
       builder: (context, snapshot) {
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData) {
           return loadingCard(title, icon, color);
         }
 
-        int count = snapshot.data?.docs.length ?? 0;
+        int count = snapshot.data!.docs.length;
 
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 260,
-          padding: const EdgeInsets.all(25),
+        return Container(
+          width: 170,
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
             boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                color: Colors.grey.withOpacity(0.1),
-              ),
+              BoxShadow(blurRadius: 10, color: Colors.grey.withOpacity(0.1)),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color),
               ),
 
-              const SizedBox(height: 20),
-
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  count.toString(),
-                  key: ValueKey(count),
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 6),
+              const SizedBox(height: 15),
 
               Text(
-                title,
+                count.toString(),
                 style: const TextStyle(
-                  color: Colors.black54,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+
+              const SizedBox(height: 5),
+
+              Text(title, style: const TextStyle(color: Colors.black54)),
             ],
           ),
         );
@@ -215,22 +213,21 @@ class AdminOverviewPage extends StatelessWidget {
     );
   }
 
-  /// Loading card
   Widget loadingCard(String title, IconData icon, Color color) {
     return Container(
-      width: 260,
-      padding: const EdgeInsets.all(25),
+      width: 170,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           const CircularProgressIndicator(),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(title),
         ],
       ),
