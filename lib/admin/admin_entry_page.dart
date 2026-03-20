@@ -2,6 +2,9 @@ import 'package:care_connect/admin/admin_overview_page.dart';
 import 'package:flutter/material.dart';
 import 'admin_doctor_approval_page.dart';
 import 'admin_complaints_page.dart';
+import 'admin_user_management_page.dart';
+import 'admin_doctor_management_page.dart';
+import 'admin_appointments_page.dart';
 
 class AdminEntryPage extends StatefulWidget {
   const AdminEntryPage({super.key});
@@ -13,7 +16,14 @@ class AdminEntryPage extends StatefulWidget {
 class _AdminEntryPageState extends State<AdminEntryPage> {
   int selectedIndex = 0;
 
-  final List<String> menuItems = ["Overview", "Doctor Approvals", "Complaints"];
+  final List<String> menuItems = [
+    "Overview",
+    "User Management",
+    "Doctor Approvals",
+    "Doctor Management",
+    "Appointments",
+    "Complaints"
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -68,11 +78,7 @@ class _AdminEntryPageState extends State<AdminEntryPage> {
                       child: Row(
                         children: [
                           Icon(
-                            index == 0
-                                ? Icons.dashboard
-                                : index == 1
-                                ? Icons.verified
-                                : Icons.report,
+                            _getIconForIndex(index),
                             color: isSelected ? Colors.blue : Colors.white,
                           ),
                           const SizedBox(width: 12),
@@ -147,11 +153,36 @@ class _AdminEntryPageState extends State<AdminEntryPage> {
       case 0:
         return AdminOverviewPage();
       case 1:
-        return const AdminDoctorApprovalPage();
+        return const AdminUserManagementPage();
       case 2:
+        return const AdminDoctorApprovalPage();
+      case 3:
+        return const AdminDoctorManagementPage();
+      case 4:
+        return const AdminAppointmentsPage();
+      case 5:
         return const AdminComplaintsPage();
       default:
         return AdminOverviewPage();
+    }
+  }
+
+  IconData _getIconForIndex(int index) {
+    switch (index) {
+      case 0:
+        return Icons.dashboard;
+      case 1:
+        return Icons.people;
+      case 2:
+        return Icons.verified;
+      case 3:
+        return Icons.medical_services;
+      case 4:
+        return Icons.calendar_today;
+      case 5:
+        return Icons.report;
+      default:
+        return Icons.dashboard;
     }
   }
 
