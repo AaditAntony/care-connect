@@ -19,19 +19,92 @@ class BookAppointmentPage extends StatefulWidget {
 
 class _BookAppointmentPageState extends State<BookAppointmentPage> {
   final problemController = TextEditingController();
-  String selectedSlot = "10:00 AM - 10:30 AM";
+  String? selectedSlot;
   bool loading = false;
 
-  final List<String> slots = [
-    "10:00 AM - 10:30 AM",
-    "11:00 AM - 11:30 AM",
-    "2:00 PM - 2:30 PM",
-  ];
+  List<String> allSlots = [];
+  List<String> bookedSlots = [];
+  bool isLoadingSlots = true;
+
+  @override
+  void initState() {
+    super.initState();
+    allSlots = _generateTimeSlots();
+    _fetchBookedSlots();
+  }
+
+  String _formatTime(int hour, int minute) {
+    String period = hour >= 12 ? 'PM' : 'AM';
+    int h = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    String m = minute.toString().padLeft(2, '0');
+    return '$h:$m $period';
+  }
+
+  List<String> _generateTimeSlots() {
+    List<String> generatedSlots = [];
+    for (int h = 9; h < 17; h++) {
+      generatedSlots.add('${_formatTime(h, 0)} - ${_formatTime(h, 30)}');
+      generatedSlots.add('${_formatTime(h, 30)} - ${_formatTime(h + 1, 0)}');
+    }
+    return generatedSlots;
+  }
+
+  bool _isSlotInPast(String slot) {
+    try {
+      final now = DateTime.now();
+      final startTimeStr = slot.split(' - ')[0]; // e.g. "9:00 AM"
+      final parts = startTimeStr.split(' ');
+      final timeParts = parts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1]);
+
+      if (parts[1] == 'PM' && hour != 12)
+        hour += 12;
+      else if (parts[1] == 'AM' && hour == 12)
+        hour = 0;
+
+      DateTime slotTime = DateTime(now.year, now.month, now.day, hour, minute);
+      return slotTime.isBefore(now) || slotTime.isAtSameMomentAs(now);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _fetchBookedSlots() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where('doctorId', isEqualTo: widget.doctorId)
+          .where('status', isEqualTo: 'booked')
+          .get();
+
+      if (mounted) {
+        setState(() {
+          bookedSlots = snapshot.docs
+              .map((doc) => doc['timeSlot'] as String)
+              .toList();
+          isLoadingSlots = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isLoadingSlots = false);
+      }
+      print("Error fetching slots: $e");
+    }
+  }
 
   Future<void> bookAppointment() async {
     if (problemController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please describe your problem")),
+      );
+      return;
+    }
+
+    if (selectedSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a time slot")),
       );
       return;
     }
@@ -73,7 +146,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         'userId': user.uid,
         'patientEmail': user.email,
         'problem': problemController.text.trim(),
-        'timeSlot': selectedSlot,
+        'timeSlot': selectedSlot!,
         'status': 'booked',
         'isReferred': false,
         'createdAt': Timestamp.now(),
@@ -213,35 +286,77 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
 
             const SizedBox(height: 10),
 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 10,
-                    color: Colors.black.withOpacity(0.05),
+            isLoadingSlots
+                ? const Center(child: CircularProgressIndicator())
+                : Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: allSlots.map((slot) {
+                      bool isPast = _isSlotInPast(slot);
+                      bool isBooked = bookedSlots.contains(slot);
+                      bool isOccupied = isPast || isBooked;
+                      bool isSelected = selectedSlot == slot;
+
+                      return GestureDetector(
+                        onTap: isOccupied
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedSlot = slot;
+                                });
+                              },
+                        child: Container(
+                          width: (MediaQuery.of(context).size.width - 70) / 3,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isOccupied
+                                ? Colors.red.shade50
+                                : isSelected
+                                ? const Color(0xFF5C6BC0)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isOccupied
+                                  ? Colors.red.shade300
+                                  : isSelected
+                                  ? const Color(0xFF5C6BC0)
+                                  : Colors.grey.shade300,
+                            ),
+                            boxShadow: isSelected || !isOccupied
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            slot,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isOccupied
+                                  ? Colors.red.shade400
+                                  : isSelected
+                                  ? Colors.white
+                                  : Colors.black87,
+                              decoration: isOccupied
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ],
-              ),
-              child: DropdownButtonFormField<String>(
-                value: selectedSlot,
-                icon: const Icon(Icons.keyboard_arrow_down),
-                decoration: const InputDecoration(border: InputBorder.none),
-                items: slots
-                    .map(
-                      (slot) =>
-                          DropdownMenuItem(value: slot, child: Text(slot)),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedSlot = value!;
-                  });
-                },
-              ),
-            ),
 
             const SizedBox(height: 40),
 
