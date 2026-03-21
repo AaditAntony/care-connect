@@ -95,20 +95,6 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   }
 
   Future<void> bookAppointment() async {
-    if (problemController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please describe your problem")),
-      );
-      return;
-    }
-
-    if (selectedSlot == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a time slot")),
-      );
-      return;
-    }
-
     setState(() => loading = true);
 
     try {
@@ -167,6 +153,28 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   }
 
   Future<void> handlePayment() async {
+    final bool isProblemEmpty = problemController.text.trim().isEmpty;
+    final bool isSlotEmpty = selectedSlot == null;
+
+    if (isProblemEmpty && isSlotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please provide a description and select a time slot"),
+        ),
+      );
+      return;
+    } else if (isProblemEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please describe your problem")),
+      );
+      return;
+    } else if (isSlotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a time slot")),
+      );
+      return;
+    }
+
     bool? paid = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const PaymentPage()),
