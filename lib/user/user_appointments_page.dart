@@ -58,11 +58,17 @@ class _AppointmentsTab extends StatelessWidget {
     final String userId = FirebaseAuth.instance.currentUser!.uid;
 
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('appointments')
-          .where('userId', isEqualTo: userId)
-          .where('status', isEqualTo: status)
-          .snapshots(),
+      stream: status == "booked"
+          ? FirebaseFirestore.instance
+                .collection('appointments')
+                .where('userId', isEqualTo: userId)
+                .where('status', whereIn: ['booked', 'cancelled'])
+                .snapshots()
+          : FirebaseFirestore.instance
+                .collection('appointments')
+                .where('userId', isEqualTo: userId)
+                .where('status', isEqualTo: status)
+                .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
@@ -92,13 +98,17 @@ class _AppointmentsTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final doc = docs[index];
             final data = doc.data() as Map<String, dynamic>;
+            final bool isCancelled = data['status'] == 'cancelled';
 
             return Container(
               margin: const EdgeInsets.only(bottom: 18),
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isCancelled ? Colors.red.shade50 : Colors.white,
                 borderRadius: BorderRadius.circular(22),
+                border: isCancelled
+                    ? Border.all(color: Colors.red.shade300)
+                    : null,
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 12,
@@ -109,7 +119,7 @@ class _AppointmentsTab extends StatelessWidget {
               ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(22),
-                onTap: isCompleted
+                onTap: isCompleted && !isCancelled
                     ? () {
                         Navigator.push(
                           context,
@@ -121,74 +131,114 @@ class _AppointmentsTab extends StatelessWidget {
                         );
                       }
                     : null,
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// 🔹 Icon Circle
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: isCompleted
-                          ? Colors.green.withOpacity(0.15)
-                          : kPrimary.withOpacity(0.15),
-                      child: Icon(
-                        isCompleted ? Icons.check_circle : Icons.calendar_today,
-                        color: isCompleted ? Colors.green : kPrimary,
-                      ),
-                    ),
-
-                    const SizedBox(width: 16),
-
-                    /// 🔹 Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            data['doctorName'] ?? "Doctor",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                    Row(
+                      children: [
+                        /// 🔹 Icon Circle
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: isCancelled
+                              ? Colors.red.withOpacity(0.15)
+                              : isCompleted
+                              ? Colors.green.withOpacity(0.15)
+                              : kPrimary.withOpacity(0.15),
+                          child: Icon(
+                            isCancelled
+                                ? Icons.cancel
+                                : isCompleted
+                                ? Icons.check_circle
+                                : Icons.calendar_today,
+                            color: isCancelled
+                                ? Colors.red
+                                : isCompleted
+                                ? Colors.green
+                                : kPrimary,
                           ),
+                        ),
 
-                          const SizedBox(height: 6),
+                        const SizedBox(width: 16),
 
-                          Text(
-                            data['timeSlot'] ?? "",
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// 🔹 Status Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isCompleted
-                                  ? Colors.green.withOpacity(0.15)
-                                  : kPrimary.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              data['status'].toString().toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isCompleted ? Colors.green : kPrimary,
+                        /// 🔹 Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                data['doctorName'] ?? "Doctor",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                    if (isCompleted)
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.grey,
+                              const SizedBox(height: 6),
+
+                              Text(
+                                data['timeSlot'] ?? "",
+                                style: TextStyle(
+                                  color: isCancelled
+                                      ? Colors.red.shade400
+                                      : Colors.grey,
+                                  decoration: isCancelled
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              /// 🔹 Status Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isCancelled
+                                      ? Colors.red.withOpacity(0.15)
+                                      : isCompleted
+                                      ? Colors.green.withOpacity(0.15)
+                                      : kPrimary.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  data['status'].toString().toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: isCancelled
+                                        ? Colors.red
+                                        : isCompleted
+                                        ? Colors.green
+                                        : kPrimary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        if (isCompleted && !isCancelled)
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                      ],
+                    ),
+                    if (isCancelled)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: Text(
+                          "The doctor is not available, the meeting that is scheduled has been cancelled and you will get back the payment in the next 42 hours.",
+                          style: TextStyle(
+                            color: Colors.red.shade700,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                   ],
                 ),
