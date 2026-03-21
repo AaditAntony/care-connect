@@ -72,11 +72,13 @@ class BookedAppointmentsTab extends StatelessWidget {
             final data = doc.data() as Map<String, dynamic>;
 
             return _AppointmentCard(
+              appointmentId: doc.id, // Passed for cancellation
               patientEmail: data['patientEmail'] ?? "Patient",
               timeSlot: data['timeSlot'] ?? "",
               status: "Booked",
               statusColor: const Color(0xFF00897B),
               icon: Icons.schedule,
+              showCancelButton: true, // Show Cancel Button
               onTap: () {
                 Navigator.push(
                   context,
@@ -130,11 +132,13 @@ class CompletedAppointmentsTab extends StatelessWidget {
             final data = doc.data() as Map<String, dynamic>;
 
             return _AppointmentCard(
+              appointmentId: doc.id,
               patientEmail: data['patientEmail'] ?? "Patient",
               timeSlot: data['timeSlot'] ?? "",
               status: "Completed",
               statusColor: Colors.green,
               icon: Icons.check_circle,
+              showCancelButton: false, // No cancellation for completed
               onTap: null,
             );
           },
@@ -145,21 +149,61 @@ class CompletedAppointmentsTab extends StatelessWidget {
 }
 
 class _AppointmentCard extends StatelessWidget {
+  final String appointmentId;
   final String patientEmail;
   final String timeSlot;
   final String status;
   final Color statusColor;
   final IconData icon;
+  final bool showCancelButton;
   final VoidCallback? onTap;
 
   const _AppointmentCard({
+    required this.appointmentId,
     required this.patientEmail,
     required this.timeSlot,
     required this.status,
     required this.statusColor,
     required this.icon,
+    this.showCancelButton = false,
     required this.onTap,
   });
+
+  Future<void> _cancelAppointment(BuildContext context) async {
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Cancel Appointment"),
+        content: const Text(
+          "Are you sure you want to cancel this appointment because you are unavailable?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Yes, Cancel"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(appointmentId)
+          .update({'status': 'cancelled'});
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Appointment cancelled successfully")),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +272,13 @@ class _AppointmentCard extends StatelessWidget {
               ),
             ),
 
-            if (onTap != null)
+            if (showCancelButton)
+              IconButton(
+                icon: const Icon(Icons.cancel, color: Colors.red),
+                tooltip: "Cancel Appointment",
+                onPressed: () => _cancelAppointment(context),
+              )
+            else if (onTap != null)
               const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
           ],
         ),

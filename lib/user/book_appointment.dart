@@ -75,7 +75,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
       final snapshot = await FirebaseFirestore.instance
           .collection('appointments')
           .where('doctorId', isEqualTo: widget.doctorId)
-          .where('status', isEqualTo: 'booked')
+          .where('status', whereIn: ['booked', 'cancelled'])
           .get();
 
       if (mounted) {
@@ -104,12 +104,12 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
         throw "User email not available";
       }
 
-      /// 🔍 CHECK IF SLOT ALREADY BOOKED
+      /// 🔍 CHECK IF SLOT ALREADY BOOKED OR CANCELLED
       final existing = await FirebaseFirestore.instance
           .collection('appointments')
           .where('doctorId', isEqualTo: widget.doctorId)
           .where('timeSlot', isEqualTo: selectedSlot)
-          .where('status', isEqualTo: 'booked')
+          .where('status', whereIn: ['booked', 'cancelled'])
           .get();
 
       if (existing.docs.isNotEmpty) {
